@@ -142,7 +142,7 @@ export default function CadastroRefeicao() {
                   
                   {previewUrl ? (
                     <Box sx={{ position: 'relative', width: 'fit-content' }}>
-                      <img 
+                      {/* <img 
                         src={previewUrl} 
                         alt="Preview" 
                         style={{ 
@@ -150,7 +150,7 @@ export default function CadastroRefeicao() {
                           maxHeight: '200px',
                           borderRadius: '8px'
                         }} 
-                      />
+                      /> */}
                       <IconButton
                         onClick={removeImage}
                         sx={{
