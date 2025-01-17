@@ -6,21 +6,20 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import styles from "./page.module.css";
 import { useRouter } from 'next/navigation';
 import { refeicaoService } from '@/lib/supabase/services';
-import { Refeicao } from '@/lib/supabase/types';
+import { Refeicao, Usuario } from '@/lib/supabase/types';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-
-interface Cliente {
-  id: number;
-  nome: string;
-  quantidadeRestante: number;
-  pacoteInicial: number;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { usuarioService } from '@/lib/supabase/services/usuarioService';
 
 export default function Home() {
   const router = useRouter();
+  const { usuario } = useAuth();
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
+  const [clientes, setClientes] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingClientes, setLoadingClientes] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorClientes, setErrorClientes] = useState<string | null>(null);
 
   useEffect(() => {
     const carregarRefeicoes = async () => {
@@ -37,23 +36,23 @@ export default function Home() {
     carregarRefeicoes();
   }, []);
 
-  const clientes: Cliente[] = [
-    { id: 1, nome: "João Silva", quantidadeRestante: 8, pacoteInicial: 10 },
-    { id: 2, nome: "Maria Santos", quantidadeRestante: 15, pacoteInicial: 20 },
-    { id: 3, nome: "Pedro Oliveira", quantidadeRestante: 3, pacoteInicial: 10 },
-  ];
+  useEffect(() => {
+    const carregarClientes = async () => {
+      if (usuario?.perfil === 'admin') {
+        try {
+          const usuarios = await usuarioService.listarTodos();
+          const clientesAtivos = usuarios.filter(u => u.perfil === 'cliente');
+          setClientes(clientesAtivos);
+        } catch (err) {
+          setErrorClientes(err instanceof Error ? err.message : 'Erro ao carregar clientes');
+        } finally {
+          setLoadingClientes(false);
+        }
+      }
+    };
 
-  const getStatusColor = (quantidade: number) => {
-    if (quantidade <= 3) return 'error';
-    if (quantidade <= 5) return 'warning';
-    return 'success';
-  };
-
-  const getStatusText = (quantidade: number) => {
-    if (quantidade <= 3) return 'Crítico';
-    if (quantidade <= 5) return 'Atenção';
-    return 'Normal';
-  };
+    carregarClientes();
+  }, [usuario?.perfil]);
 
   return (
     <ProtectedRoute>
@@ -128,49 +127,64 @@ export default function Home() {
             )}
           </Box>
 
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
-              Clientes Ativos
-            </Typography>
-            <TableContainer component={Paper} elevation={3}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell>Nome</TableCell>
-                    <TableCell align="center">Pacote</TableCell>
-                    <TableCell align="center">Restantes</TableCell>
-                    <TableCell align="center">Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clientes.map((cliente) => (
-                    <TableRow 
-                      key={cliente.id} 
-                      hover 
-                      sx={{ 
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                        }
-                      }}
-                      onClick={() => router.push(`/clientes/${cliente.id}`)}
-                    >
-                      <TableCell>{cliente.nome}</TableCell>
-                      <TableCell align="center">{cliente.pacoteInicial}</TableCell>
-                      <TableCell align="center">{cliente.quantidadeRestante}</TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={getStatusText(cliente.quantidadeRestante)}
-                          color={getStatusColor(cliente.quantidadeRestante)}
-                          size="small"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+          {usuario?.perfil === 'admin' && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+                Clientes Ativos
+              </Typography>
+              {loadingClientes ? (
+                <Typography>Carregando clientes...</Typography>
+              ) : errorClientes ? (
+                <Alert severity="error">{errorClientes}</Alert>
+              ) : (
+                <TableContainer component={Paper} elevation={3}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell>Nome</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                        <TableCell align="center">Ações</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {clientes.map((cliente) => (
+                        <TableRow 
+                          key={cliente.id} 
+                          hover 
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                            }
+                          }}
+                        >
+                          <TableCell>{cliente.nome}</TableCell>
+                          <TableCell>{cliente.email}</TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label="Ativo"
+                              color="success"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => router.push(`/clientes/${cliente.id}`)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Box>
+          )}
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
             <Button
