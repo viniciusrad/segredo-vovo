@@ -12,7 +12,9 @@ import {
   FormControlLabel,
   Switch,
   Alert,
-  Snackbar
+  Snackbar,
+  Chip,
+  Autocomplete
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { refeicaoService } from '@/lib/supabase/services';
@@ -28,14 +30,34 @@ export default function CadastroRefeicao() {
     descricao: '',
     preco: 0,
     disponivel: true,
-    imagem_url: ''
+    imagem_url: '',
+    ingredientes: []
   });
+  const [ingredienteInput, setIngredienteInput] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setRefeicao(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value
+    }));
+  };
+
+  const handleAddIngrediente = () => {
+    const trimmed = ingredienteInput.trim();
+    if (trimmed && !refeicao.ingredientes.includes(trimmed)) {
+      setRefeicao(prev => ({
+        ...prev,
+        ingredientes: [...prev.ingredientes, trimmed]
+      }));
+      setIngredienteInput('');
+    }
+  };
+
+  const handleDeleteIngrediente = (ingredienteToDelete: string) => {
+    setRefeicao(prev => ({
+      ...prev,
+      ingredientes: prev.ingredientes.filter(ing => ing !== ingredienteToDelete)
     }));
   };
 
@@ -53,7 +75,8 @@ export default function CadastroRefeicao() {
         descricao: '',
         preco: 0,
         disponivel: true,
-        imagem_url: ''
+        imagem_url: '',
+        ingredientes: []
       });
       // Redirecionar após 2 segundos
       setTimeout(() => {
@@ -124,6 +147,39 @@ export default function CadastroRefeicao() {
             onChange={handleInputChange}
             variant="outlined"
           />
+
+          <Autocomplete
+            freeSolo
+            options={[]}
+            value={ingredienteInput}
+            onInputChange={(event, newInputValue) => {
+              setIngredienteInput(newInputValue);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleAddIngrediente();
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Adicionar Ingrediente"
+                variant="outlined"
+                onBlur={handleAddIngrediente}
+              />
+            )}
+          />
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {refeicao.ingredientes.map((ing, index) => (
+              <Chip
+                key={index}
+                label={ing}
+                onDelete={() => handleDeleteIngrediente(ing)}
+                color="primary"
+              />
+            ))}
+          </Box>
 
           <FormControlLabel
             control={

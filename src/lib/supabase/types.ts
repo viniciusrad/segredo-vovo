@@ -14,6 +14,7 @@ export interface Refeicao {
   preco: number;
   disponivel: boolean;
   imagem_url?: string;
+  ingredientes: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -26,6 +27,19 @@ export interface Pedido {
   valor_total: number;
   status: 'pendente' | 'entregue' | 'cancelado';
   data_pedido: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type PerfilUsuario = 'admin' | 'atendente' | 'cliente';
+
+export interface Usuario {
+  id: string;
+  email: string;
+  nome: string;
+  perfil: PerfilUsuario;
+  foto_url?: string;
+  cliente_id?: string; // Referência ao cliente se o perfil for 'cliente'
   created_at?: string;
   updated_at?: string;
 } 
