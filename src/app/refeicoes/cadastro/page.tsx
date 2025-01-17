@@ -1,212 +1,182 @@
 'use client';
-import { useState } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  TextField, 
-  Button, 
-  Card, 
-  CardContent,
-  IconButton,
-  Paper,
-  Stack
-} from '@mui/material';
-import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useRouter } from 'next/navigation';
 
-interface NovaRefeicao {
-  nome: string;
-  descricao: string;
-  foto?: File;
-}
+import { useState } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  TextField,
+  Button,
+  Stack,
+  FormControlLabel,
+  Switch,
+  Alert,
+  Snackbar
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { refeicaoService } from '@/lib/supabase/services';
+import { Refeicao } from '@/lib/supabase/types';
 
 export default function CadastroRefeicao() {
   const router = useRouter();
-  const [refeicao, setRefeicao] = useState<NovaRefeicao>({
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [refeicao, setRefeicao] = useState<Omit<Refeicao, 'id' | 'created_at' | 'updated_at'>>({
     nome: '',
     descricao: '',
+    preco: 0,
+    disponivel: true,
+    imagem_url: ''
   });
-  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setRefeicao(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setRefeicao(prev => ({
-        ...prev,
-        foto: file
-      }));
-      
-      // Criar preview da imagem
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      await refeicaoService.criar(refeicao);
+      setSuccess(true);
+      // Limpar o formulário
+      setRefeicao({
+        nome: '',
+        descricao: '',
+        preco: 0,
+        disponivel: true,
+        imagem_url: ''
+      });
+      // Redirecionar após 2 segundos
+      setTimeout(() => {
+        router.push('/refeicoes');
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cadastrar refeição');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const removeImage = () => {
-    setRefeicao(prev => {
-      const newRefeicao = { ...prev };
-      delete newRefeicao.foto;
-      return newRefeicao;
-    });
-    setPreviewUrl('');
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aqui você implementaria a lógica para salvar a refeição
-    console.log('Refeição a ser salva:', refeicao);
-    // Após salvar, redirecionar para a página principal
-    router.push('/');
-  };
-
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, rgba(248, 250, 252, 1) 0%, rgba(241, 245, 249, 1) 100%)',
-      py: 4
-    }}>
-      <Container maxWidth="md">
-        <Stack spacing={4}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton 
-              onClick={() => router.push('/')}
-              sx={{ 
-                backgroundColor: 'white',
-                '&:hover': { backgroundColor: '#f5f5f5' }
-              }}
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Paper 
+        component="form" 
+        onSubmit={handleSubmit}
+        elevation={3}
+        sx={{ p: 4 }}
+      >
+        <Typography variant="h4" gutterBottom align="center">
+          Cadastro de Refeição
+        </Typography>
+
+        <Stack spacing={3}>
+          <TextField
+            fullWidth
+            label="Nome do Prato"
+            name="nome"
+            value={refeicao.nome}
+            onChange={handleInputChange}
+            required
+            variant="outlined"
+          />
+
+          <TextField
+            fullWidth
+            label="Descrição"
+            name="descricao"
+            value={refeicao.descricao}
+            onChange={handleInputChange}
+            required
+            multiline
+            rows={4}
+            variant="outlined"
+          />
+
+          <TextField
+            fullWidth
+            label="Preço"
+            name="preco"
+            type="number"
+            value={refeicao.preco}
+            onChange={handleInputChange}
+            required
+            variant="outlined"
+            inputProps={{ 
+              step: "0.01",
+              min: "0" 
+            }}
+          />
+
+          <TextField
+            fullWidth
+            label="URL da Imagem"
+            name="imagem_url"
+            value={refeicao.imagem_url}
+            onChange={handleInputChange}
+            variant="outlined"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={refeicao.disponivel}
+                onChange={handleInputChange}
+                name="disponivel"
+                color="primary"
+              />
+            }
+            label="Disponível para Pedidos"
+          />
+
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              onClick={() => router.back()}
+              disabled={loading}
             >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography 
-              variant="h4" 
-              component="h1"
-              sx={{ 
-                fontWeight: 'bold',
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                backgroundClip: 'text',
-                textFillColor: 'transparent',
-              }}
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
             >
-              Cadastro de Nova Refeição
-            </Typography>
+              {loading ? 'Salvando...' : 'Salvar Refeição'}
+            </Button>
           </Box>
-
-          <Paper 
-            component="form" 
-            onSubmit={handleSubmit}
-            elevation={3}
-            sx={{ p: 4 }}
-          >
-            <Stack spacing={3}>
-              <TextField
-                fullWidth
-                label="Nome do Prato"
-                name="nome"
-                value={refeicao.nome}
-                onChange={handleInputChange}
-                required
-                variant="outlined"
-              />
-
-              <TextField
-                fullWidth
-                label="Descrição"
-                name="descricao"
-                value={refeicao.descricao}
-                onChange={handleInputChange}
-                required
-                multiline
-                rows={4}
-                variant="outlined"
-              />
-
-              <Card sx={{ p: 2, backgroundColor: '#f8f9fa' }}>
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Foto da Refeição (Opcional)
-                  </Typography>
-                  
-                  {previewUrl ? (
-                    <Box sx={{ position: 'relative', width: 'fit-content' }}>
-                      {/* <img 
-                        src={previewUrl} 
-                        alt="Preview" 
-                        style={{ 
-                          maxWidth: '100%', 
-                          maxHeight: '200px',
-                          borderRadius: '8px'
-                        }} 
-                      /> */}
-                      <IconButton
-                        onClick={removeImage}
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                          }
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  ) : (
-                    <Button
-                      component="label"
-                      variant="outlined"
-                      startIcon={<AddPhotoAlternateIcon />}
-                      sx={{ mt: 1 }}
-                    >
-                      Escolher Foto
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                      />
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                <Button
-                  variant="outlined"
-                  onClick={() => router.push('/')}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  sx={{
-                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                    boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-                  }}
-                >
-                  Salvar Refeição
-                </Button>
-              </Box>
-            </Stack>
-          </Paper>
         </Stack>
-      </Container>
-    </Box>
+      </Paper>
+
+      <Snackbar 
+        open={success} 
+        autoHideDuration={6000} 
+        onClose={() => setSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          Refeição cadastrada com sucesso!
+        </Alert>
+      </Snackbar>
+
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 } 
