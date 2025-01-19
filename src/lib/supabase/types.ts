@@ -26,7 +26,7 @@ export interface Pedido {
   refeicao_id: string;
   quantidade: number;
   valor_total: number;
-  status: 'pendente' | 'entregue' | 'cancelado';
+  status: 'separado' | 'entregue' | 'cancelado';
   data_pedido: string;
   created_at?: string;
   updated_at?: string;

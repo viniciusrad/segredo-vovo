@@ -12,12 +12,20 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { Refeicao } from '@/lib/supabase/types';
 import { refeicaoService } from '@/lib/supabase/services';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import InfoIcon from '@mui/icons-material/Info';
+import UpdateIcon from '@mui/icons-material/Update';
 
 export default function DetalhesRefeicaoPage() {
   const params = useParams();
@@ -25,32 +33,42 @@ export default function DetalhesRefeicaoPage() {
   const [refeicao, setRefeicao] = useState<Refeicao | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [atualizandoQuantidade, setAtualizandoQuantidade] = useState(false);
 
   const { usuario } = useAuth();
 
-
   console.log(usuario);
 
-  useEffect(() => {
-    const carregarRefeicao = async () => {
-      try {
-        if (!params.id) {
-          throw new Error('ID da refeição não fornecido');
-        }
-        const data = await refeicaoService.buscarPorId(params.id as string);
-        if (!data) {
-          throw new Error('Refeição não encontrada');
-        }
-        setRefeicao(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar refeição');
-      } finally {
-        setLoading(false);
+  const carregarRefeicao = async () => {
+    try {
+      if (!params.id) {
+        throw new Error('ID da refeição não fornecido');
       }
-    };
+      const data = await refeicaoService.buscarPorId(params.id as string);
+      if (!data) {
+        throw new Error('Refeição não encontrada');
+      }
+      setRefeicao(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar refeição');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     carregarRefeicao();
   }, [params.id]);
+
+  const verificarQuantidade = async () => {
+    setAtualizandoQuantidade(true);
+    try {
+      await carregarRefeicao();
+    } finally {
+      setAtualizandoQuantidade(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -160,11 +178,35 @@ export default function DetalhesRefeicaoPage() {
               </Box>
 
               <Box>
-                <Chip
-                  label={refeicao.disponivel ? 'Disponível' : 'Indisponível'}
-                  color={refeicao.disponivel ? 'success' : 'error'}
-                  sx={{ mt: 2 }}
-                />
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Chip
+                    label={refeicao.disponivel ? 'Disponível' : 'Indisponível'}
+                    color={refeicao.disponivel ? 'success' : 'error'}
+                  />
+                  {refeicao.disponivel && (
+                    <>
+                      <Chip
+                        label={`${refeicao.quantidade_disponivel} unidades disponíveis`}
+                        color="primary"
+                        variant="outlined"
+                      />
+                      <Tooltip title="Os números podem mudar rapidamente. Clique para atualizar.">
+                        <IconButton
+                          size="small"
+                          onClick={verificarQuantidade}
+                          disabled={atualizandoQuantidade}
+                        >
+                          <UpdateIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                </Stack>
+                {refeicao.disponivel && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    * A quantidade disponível pode mudar rapidamente
+                  </Typography>
+                )}
               </Box>
                   
               <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
@@ -178,12 +220,20 @@ export default function DetalhesRefeicaoPage() {
                   >
                     Editar Refeição
                   </Button>
-                ) : (
+                ) : refeicao.disponivel && refeicao.quantidade_disponivel > 0 ? (
                   <Button
                     variant="contained"
                     onClick={() => router.push(`/refeicoes/${refeicao.id}/reserva`)}
+                    startIcon={<InfoIcon />}
                   >
                     Reservar Refeição
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    disabled
+                  >
+                    Indisponível para Reserva
                   </Button>
                 )}
               </Box>
@@ -191,6 +241,24 @@ export default function DetalhesRefeicaoPage() {
           </Grid>
         </Grid>
       </Paper>
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Quantidade Disponível</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Atualmente há {refeicao?.quantidade_disponivel} unidades disponíveis.
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            * Este número pode mudar rapidamente conforme outros clientes fazem reservas
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Fechar</Button>
+          <Button onClick={verificarQuantidade} disabled={atualizandoQuantidade}>
+            Atualizar Quantidade
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 } 
