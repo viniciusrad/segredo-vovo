@@ -47,15 +47,53 @@ export const refeicaoService = {
   },
 
   async atualizarQuantidade(id: string, quantidade: number): Promise<Refeicao> {
-    const { data, error } = await supabase
-      .from('refeicoes')
-      .update({ quantidade_disponivel: quantidade })
-      .eq('id', id)
-      .select()
-      .single();
 
-    if (error) throw error;
-    return data;
+
+    try {
+      //se a refeição existe
+      const { data: refeicaoExistente, error: errorBusca } = await supabase
+        .from('refeicoes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (errorBusca || !refeicaoExistente) {
+        throw new Error('Refeição não encontrada');
+      }
+
+      //  apenas a quantidade
+      const { data, error } = await supabase
+        .from('refeicoes')
+        .update({
+          quantidade_disponivel: quantidade
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao atualizar quantidade:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Erro ao retornar dados atualizados');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erro durante a atualização:', {
+        error,
+        message: error instanceof Error ? error.message : 'Erro desconhecido',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error;
+    }
   },
 
   async excluir(id: string): Promise<void> {

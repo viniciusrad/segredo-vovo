@@ -51,7 +51,7 @@ export default function GerenciarRefeicoes() {
   };
 
   const handleQuantidadeChange = (id: string, valor: string) => {
-    const quantidade = parseInt(valor) || 0;
+    const quantidade = Math.max(0, parseInt(valor) || 0);
     setQuantidades(prev => ({
       ...prev,
       [id]: quantidade
@@ -60,16 +60,35 @@ export default function GerenciarRefeicoes() {
 
   const atualizarQuantidade = async (refeicao: Refeicao) => {
     try {
-      await refeicaoService.atualizarQuantidade(refeicao.id, quantidades[refeicao.id]);
+      const novaQuantidade = quantidades[refeicao.id];
+      
+      if (novaQuantidade === undefined) {
+        setFeedback({
+          tipo: 'error',
+          mensagem: 'Quantidade inválida'
+        });
+        return;
+      }
+
+      console.log('Tentando atualizar quantidade:', {
+        id: refeicao.id,
+        quantidade: novaQuantidade,
+        refeicaoAtual: refeicao
+      });
+
+      await refeicaoService.atualizarQuantidade(refeicao.id, novaQuantidade);
+      
       setFeedback({
         tipo: 'success',
         mensagem: 'Quantidade atualizada com sucesso!'
       });
-      carregarRefeicoes();
+      
+      await carregarRefeicoes();
     } catch (err) {
+      console.error('Erro ao atualizar quantidade:', err);
       setFeedback({
         tipo: 'error',
-        mensagem: 'Erro ao atualizar quantidade'
+        mensagem: err instanceof Error ? err.message : 'Erro ao atualizar quantidade'
       });
     }
   };
