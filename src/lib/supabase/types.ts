@@ -26,10 +26,23 @@ export interface Pedido {
   refeicao_id: string;
   quantidade: number;
   valor_total: number;
-  status: 'separado' | 'entregue' | 'cancelado';
+  status: 'pendente' | 'separado' | 'entregue' | 'cancelado';
   data_pedido: string;
   created_at?: string;
   updated_at?: string;
+  usuarios?: {
+    id: string;
+    nome: string;
+    email: string;
+    telefone?: string;
+    endereco?: string;
+  };
+  refeicoes?: {
+    id: string;
+    nome: string;
+    preco: number;
+    descricao?: string;
+  };
 }
 
 export type PerfilUsuario = 'admin' | 'atendente' | 'cliente';

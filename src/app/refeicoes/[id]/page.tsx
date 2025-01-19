@@ -166,7 +166,7 @@ export default function DetalhesRefeicaoPage() {
                   Ingredientes
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {refeicao.ingredientes.map((ingrediente, index) => (
+                  {refeicao.ingredientes?.map((ingrediente, index) => (
                     <Chip
                       key={index}
                       label={ingrediente}

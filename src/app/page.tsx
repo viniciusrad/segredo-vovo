@@ -6,8 +6,8 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import styles from "./page.module.css";
 import { useRouter } from 'next/navigation';
-import { refeicaoService } from '@/lib/supabase/services';
-import { Refeicao, Usuario } from '@/lib/supabase/types';
+import { refeicaoService, pedidoService } from '@/lib/supabase/services';
+import { Refeicao, Usuario, Pedido } from '@/lib/supabase/types';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { usuarioService } from '@/lib/supabase/services/usuarioService';
@@ -17,43 +17,63 @@ export default function Home() {
   const { usuario } = useAuth();
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [clientes, setClientes] = useState<Usuario[]>([]);
+  const [pedidosDoDia, setPedidosDoDia] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingClientes, setLoadingClientes] = useState(true);
+  const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorClientes, setErrorClientes] = useState<string | null>(null);
+  const [errorPedidos, setErrorPedidos] = useState<string | null>(null);
 
   useEffect(() => {
-    const carregarRefeicoes = async () => {
-      try {
-        const data = await refeicaoService.listarTodas();
-        setRefeicoes(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar refeições');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     carregarRefeicoes();
   }, []);
 
   useEffect(() => {
-    const carregarClientes = async () => {
-      if (usuario?.perfil === 'admin') {
-        try {
-          const usuarios = await usuarioService.listarTodos();
-          const clientesAtivos = usuarios.filter(u => u.perfil === 'cliente');
-          setClientes(clientesAtivos);
-        } catch (err) {
-          setErrorClientes(err instanceof Error ? err.message : 'Erro ao carregar clientes');
-        } finally {
-          setLoadingClientes(false);
-        }
-      }
-    };
-
-    carregarClientes();
+    if (usuario?.perfil === 'admin') {
+      carregarClientes();
+      carregarPedidosDoDia();
+    }
   }, [usuario?.perfil]);
+
+  const carregarRefeicoes = async () => {
+    try {
+      const data = await refeicaoService.listarTodas();
+      setRefeicoes(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar refeições');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const carregarClientes = async () => {
+    try {
+      const usuarios = await usuarioService.listarTodos();
+      const clientesAtivos = usuarios.filter(u => u.perfil === 'cliente');
+      setClientes(clientesAtivos);
+    } catch (err) {
+      setErrorClientes(err instanceof Error ? err.message : 'Erro ao carregar clientes');
+    } finally {
+      setLoadingClientes(false);
+    }
+  };
+
+  const carregarPedidosDoDia = async () => {
+    try {
+      const pedidos = await pedidoService.listarTodos();
+      // Filtra apenas os pedidos do dia atual
+      const hoje = new Date().toISOString().split('T')[0];
+      const pedidosHoje = pedidos.filter(pedido => 
+        pedido.data_pedido.split('T')[0] === hoje
+      );
+      setPedidosDoDia(pedidosHoje);
+    } catch (err) {
+      setErrorPedidos(err instanceof Error ? err.message : 'Erro ao carregar pedidos');
+    } finally {
+      setLoadingPedidos(false);
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -225,6 +245,78 @@ export default function Home() {
               >
                 Registrar Consumo
               </Button>
+            </Box>
+          )}
+
+          {usuario?.perfil === 'admin' && (
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+                Pedidos do Dia
+              </Typography>
+              {loadingPedidos ? (
+                <Typography>Carregando pedidos...</Typography>
+              ) : errorPedidos ? (
+                <Alert severity="error">{errorPedidos}</Alert>
+              ) : pedidosDoDia.length === 0 ? (
+                <Alert severity="info">Nenhum pedido registrado hoje.</Alert>
+              ) : (
+                <TableContainer component={Paper} elevation={3}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell>Horário</TableCell>
+                        <TableCell>Cliente</TableCell>
+                        <TableCell>Refeição</TableCell>
+                        <TableCell align="center">Quantidade</TableCell>
+                        <TableCell align="center">Valor Total</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                        <TableCell align="center">Ações</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pedidosDoDia.map((pedido) => (
+                        <TableRow key={pedido.id} hover>
+                          <TableCell>
+                            {new Date(pedido.data_pedido).toLocaleTimeString('pt-BR')}
+                          </TableCell>
+                          <TableCell>
+                            {pedido.usuarios?.nome || 'Cliente não encontrado'}
+                          </TableCell>
+                          <TableCell>
+                            {pedido.refeicoes?.nome || 'Refeição não encontrada'}
+                          </TableCell>
+                          <TableCell align="center">
+                            {pedido.quantidade}
+                          </TableCell>
+                          <TableCell align="center">
+                            R$ {pedido.valor_total.toFixed(2)}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={pedido.status}
+                              color={
+                                pedido.status === 'entregue' ? 'success' :
+                                pedido.status === 'separado' ? 'warning' :
+                                pedido.status === 'cancelado' ? 'error' : 'default'
+                              }
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => router.push(`/pedidos/${pedido.id}`)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
             </Box>
           )}
         </Container>

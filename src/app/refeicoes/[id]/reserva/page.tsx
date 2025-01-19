@@ -12,10 +12,12 @@ import {
   Alert,
   Stack,
   Divider,
-  TextField
+  TextField,
+  Snackbar
 } from '@mui/material';
 import { Refeicao } from '@/lib/supabase/types';
 import { refeicaoService } from '@/lib/supabase/services';
+import { pedidoService } from '@/lib/supabase/services';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
@@ -26,36 +28,69 @@ const ReservaRefeicaoPage = () => {
   const [refeicao, setRefeicao] = useState<Refeicao | null>(null);
   const [quantidade, setQuantidade] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [processando, setProcessando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
 
   useEffect(() => {
-    const carregarRefeicao = async () => {
-      try {
-        if (!params.id) {
-          throw new Error('ID da refeição não fornecido');
-        }
-        const data = await refeicaoService.buscarPorId(params.id as string);
-        if (!data) {
-          throw new Error('Refeição não encontrada');
-        }
-        setRefeicao(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar refeição');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     carregarRefeicao();
   }, [params.id]);
 
-  const handleReservar = async () => {
+  const carregarRefeicao = async () => {
     try {
-      // Aqui será implementada a lógica de criação do pedido
-      // Por enquanto apenas retorna à página inicial
-      router.push('/');
+      if (!params.id) {
+        throw new Error('ID da refeição não fornecido');
+      }
+      const data = await refeicaoService.buscarPorId(params.id as string);
+      if (!data) {
+        throw new Error('Refeição não encontrada');
+      }
+      setRefeicao(data);
     } catch (err) {
-      setError('Erro ao realizar reserva');
+      setError(err instanceof Error ? err.message : 'Erro ao carregar refeição');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReservar = async () => {
+    if (!refeicao || !usuario) return;
+
+    setProcessando(true);
+    setError(null);
+
+    try {
+      // Criar o pedido e atualizar a quantidade
+      await pedidoService.criarPedidoEAtualizarQuantidade(
+        {
+          cliente_id: usuario.id,
+          refeicao_id: refeicao.id,
+          quantidade: quantidade,
+          valor_total: refeicao.preco * quantidade,
+          status: 'separado',
+          data_pedido: new Date().toISOString()
+        },
+        refeicao
+      );
+
+      setFeedback({
+        tipo: 'success',
+        mensagem: 'Reserva realizada com sucesso!'
+      });
+
+      // Redirecionar após 2 segundos
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
+    } catch (err) {
+      console.error('Erro ao realizar reserva:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao realizar reserva');
+      setFeedback({
+        tipo: 'error',
+        mensagem: err instanceof Error ? err.message : 'Erro ao realizar reserva'
+      });
+    } finally {
+      setProcessando(false);
     }
   };
 
@@ -176,6 +211,7 @@ const ReservaRefeicaoPage = () => {
                 variant="outlined" 
                 onClick={() => router.back()}
                 fullWidth
+                disabled={processando}
               >
                 Voltar
               </Button>
@@ -185,8 +221,9 @@ const ReservaRefeicaoPage = () => {
                   color="success"
                   onClick={handleReservar}
                   fullWidth
+                  disabled={processando}
                 >
-                  Confirmar Reserva
+                  {processando ? 'Processando...' : 'Confirmar Reserva'}
                 </Button>
               )}
             </Box>
@@ -198,6 +235,21 @@ const ReservaRefeicaoPage = () => {
             )}
           </Stack>
         </Paper>
+
+        <Snackbar
+          open={!!feedback}
+          autoHideDuration={6000}
+          onClose={() => setFeedback(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert 
+            severity={feedback?.tipo || 'info'} 
+            onClose={() => setFeedback(null)}
+            sx={{ width: '100%' }}
+          >
+            {feedback?.mensagem}
+          </Alert>
+        </Snackbar>
       </Container>
     );
   };
