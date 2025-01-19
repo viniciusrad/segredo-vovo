@@ -46,6 +46,18 @@ export const refeicaoService = {
     return data;
   },
 
+  async atualizarQuantidade(id: string, quantidade: number): Promise<Refeicao> {
+    const { data, error } = await supabase
+      .from('refeicoes')
+      .update({ quantidade_disponivel: quantidade })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   async excluir(id: string): Promise<void> {
     const { error } = await supabase
       .from('refeicoes')

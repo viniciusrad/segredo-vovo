@@ -31,7 +31,8 @@ export default function CadastroRefeicao() {
     preco: 0,
     disponivel: true,
     imagem_url: '',
-    ingredientes: []
+    ingredientes: [],
+    quantidade_disponivel: 0
   });
   const [ingredienteInput, setIngredienteInput] = useState<string>('');
 
@@ -76,7 +77,8 @@ export default function CadastroRefeicao() {
         preco: 0,
         disponivel: true,
         imagem_url: '',
-        ingredientes: []
+        ingredientes: [],
+        quantidade_disponivel: 0
       });
       // Redirecionar após 2 segundos
       setTimeout(() => {
@@ -136,6 +138,21 @@ export default function CadastroRefeicao() {
             inputProps={{ 
               step: "0.01",
               min: "0" 
+            }}
+          />
+
+          <TextField
+            fullWidth
+            label="Quantidade Disponível"
+            name="quantidade_disponivel"
+            type="number"
+            value={refeicao.quantidade_disponivel}
+            onChange={handleInputChange}
+            required
+            variant="outlined"
+            inputProps={{ 
+              min: "0",
+              step: "1"
             }}
           />
 

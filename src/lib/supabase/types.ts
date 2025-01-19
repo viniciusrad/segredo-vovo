@@ -14,6 +14,7 @@ export interface Refeicao {
   preco: number;
   disponivel: boolean;
   imagem_url?: string;
+  quantidade_disponivel: number;
   ingredientes: string[];
   created_at?: string;
   updated_at?: string;

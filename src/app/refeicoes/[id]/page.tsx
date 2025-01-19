@@ -17,6 +17,7 @@ import {
 import { Refeicao } from '@/lib/supabase/types';
 import { refeicaoService } from '@/lib/supabase/services';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function DetalhesRefeicaoPage() {
   const params = useParams();
@@ -24,6 +25,11 @@ export default function DetalhesRefeicaoPage() {
   const [refeicao, setRefeicao] = useState<Refeicao | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { usuario } = useAuth();
+
+
+  console.log(usuario);
 
   useEffect(() => {
     const carregarRefeicao = async () => {
@@ -160,17 +166,26 @@ export default function DetalhesRefeicaoPage() {
                   sx={{ mt: 2 }}
                 />
               </Box>
-
+                  
               <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                 <Button variant="outlined" onClick={() => router.back()}>
                   Voltar
                 </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => router.push(`/refeicoes/${refeicao.id}/editar`)}
-                >
-                  Editar Refeição
-                </Button>
+                {usuario?.perfil === 'admin' ? (
+                  <Button
+                    variant="contained"
+                    onClick={() => router.push(`/refeicoes/${refeicao.id}/editar`)}
+                  >
+                    Editar Refeição
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={() => router.push(`/refeicoes/${refeicao.id}/reserva`)}
+                  >
+                    Reservar Refeição
+                  </Button>
+                )}
               </Box>
             </Stack>
           </Grid>

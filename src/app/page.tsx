@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Container, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Button, Chip, Alert } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import styles from "./page.module.css";
 import { useRouter } from 'next/navigation';
 import { refeicaoService } from '@/lib/supabase/services';
@@ -58,12 +59,12 @@ export default function Home() {
     <ProtectedRoute>
       <Box className={styles.gradientBackground}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Typography 
-            variant="h3" 
-            component="h1" 
-            align="center" 
+          <Typography
+            variant="h3"
+            component="h1"
+            align="center"
             gutterBottom
-            sx={{ 
+            sx={{
               fontWeight: 'bold',
               background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               backgroundClip: 'text',
@@ -86,7 +87,7 @@ export default function Home() {
               <Grid container spacing={3}>
                 {refeicoes.map((refeicao) => (
                   <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-                    <Card 
+                    <Card
                       elevation={3}
                       onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
                       sx={{
@@ -113,11 +114,16 @@ export default function Home() {
                           <Typography variant="h6" color="primary">
                             R$ {refeicao.preco.toFixed(2)}
                           </Typography>
-                          <Chip 
-                            label={refeicao.disponivel ? "Disponível" : "Indisponível"}
-                            color={refeicao.disponivel ? "success" : "error"}
-                            size="small"
-                          />
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                            <Chip
+                              label={refeicao.disponivel ? "Disponível" : "Indisponível"}
+                              color={refeicao.disponivel ? "success" : "error"}
+                              size="small"
+                            />
+                            <Typography variant="caption" color="text.secondary">
+                              {refeicao.quantidade_disponivel} unidades disponíveis
+                            </Typography>
+                          </Box>
                         </Box>
                       </CardContent>
                     </Card>
@@ -149,10 +155,10 @@ export default function Home() {
                     </TableHead>
                     <TableBody>
                       {clientes.map((cliente) => (
-                        <TableRow 
-                          key={cliente.id} 
-                          hover 
-                          sx={{ 
+                        <TableRow
+                          key={cliente.id}
+                          hover
+                          sx={{
                             cursor: 'pointer',
                             '&:hover': {
                               backgroundColor: 'rgba(0, 0, 0, 0.04)'
@@ -185,30 +191,42 @@ export default function Home() {
               )}
             </Box>
           )}
-
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddCircleOutlineIcon />}
-              onClick={() => router.push('/refeicoes/cadastro')}
-              sx={{
-                background: 'linear-gradient(45deg, #FF9800 30%, #FFB74D 90%)',
-                boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
-              }}
-            >
-              Nova Refeição
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<RestaurantIcon />}
-              sx={{
-                background: 'linear-gradient(45deg, #4CAF50 30%, #81C784 90%)',
-                boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)',
-              }}
-            >
-              Registrar Consumo
-            </Button>
-          </Box>
+          {usuario?.perfil === 'admin' && (
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={() => router.push('/refeicoes/cadastro')}
+                sx={{
+                  background: 'linear-gradient(45deg, #FF9800 30%, #FFB74D 90%)',
+                  boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
+                }}
+              >
+                Nova Refeição
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<InventoryIcon />}
+                onClick={() => router.push('/refeicoes/gerenciar')}
+                sx={{
+                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  boxShadow: '0 3px 5px 2px rgba(33, 150, 243, .3)',
+                }}
+              >
+                Gerenciar Refeições
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<RestaurantIcon />}
+                sx={{
+                  background: 'linear-gradient(45deg, #4CAF50 30%, #81C784 90%)',
+                  boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)',
+                }}
+              >
+                Registrar Consumo
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
     </ProtectedRoute>
