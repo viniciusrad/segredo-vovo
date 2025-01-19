@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { 
-  Box, 
   Container, 
   Typography, 
   Paper, 
@@ -14,7 +13,9 @@ import {
   TextField,
   IconButton,
   Alert,
-  Snackbar
+  Snackbar,
+  Box,
+  CircularProgress
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -106,51 +107,57 @@ export default function GerenciarRefeicoes() {
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <TableContainer component={Paper} elevation={3}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell>Nome</TableCell>
-                <TableCell>Descrição</TableCell>
-                <TableCell align="center">Preço</TableCell>
-                <TableCell align="center">Status</TableCell>
-                <TableCell align="center">Quantidade Disponível</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {refeicoes.map((refeicao) => (
-                <TableRow key={refeicao.id}>
-                  <TableCell>{refeicao.nome}</TableCell>
-                  <TableCell>{refeicao.descricao}</TableCell>
-                  <TableCell align="center">R$ {refeicao.preco.toFixed(2)}</TableCell>
-                  <TableCell align="center">
-                    {refeicao.disponivel ? "Disponível" : "Indisponível"}
-                  </TableCell>
-                  <TableCell align="center">
-                    <TextField
-                      type="number"
-                      size="small"
-                      value={quantidades[refeicao.id] || 0}
-                      onChange={(e) => handleQuantidadeChange(refeicao.id, e.target.value)}
-                      InputProps={{ inputProps: { min: 0 } }}
-                      sx={{ width: '100px' }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton 
-                      color="primary"
-                      onClick={() => atualizarQuantidade(refeicao)}
-                      title="Salvar quantidade"
-                    >
-                      <SaveIcon />
-                    </IconButton>
-                  </TableCell>
+        {loading ? (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer component={Paper} elevation={3}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Descrição</TableCell>
+                  <TableCell align="center">Preço</TableCell>
+                  <TableCell align="center">Status</TableCell>
+                  <TableCell align="center">Quantidade Disponível</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {refeicoes.map((refeicao) => (
+                  <TableRow key={refeicao.id}>
+                    <TableCell>{refeicao.nome}</TableCell>
+                    <TableCell>{refeicao.descricao}</TableCell>
+                    <TableCell align="center">R$ {refeicao.preco.toFixed(2)}</TableCell>
+                    <TableCell align="center">
+                      {refeicao.disponivel ? "Disponível" : "Indisponível"}
+                    </TableCell>
+                    <TableCell align="center">
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={quantidades[refeicao.id] || 0}
+                        onChange={(e) => handleQuantidadeChange(refeicao.id, e.target.value)}
+                        InputProps={{ inputProps: { min: 0 } }}
+                        sx={{ width: '100px' }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton 
+                        color="primary"
+                        onClick={() => atualizarQuantidade(refeicao)}
+                        title="Salvar quantidade"
+                      >
+                        <SaveIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
         <Snackbar
           open={!!feedback}
