@@ -15,10 +15,12 @@ import {
   Button,
   Box,
   CircularProgress,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/navigation';
 import { Usuario } from '@/lib/supabase/types';
 import { clienteService } from '@/lib/supabase/services';
@@ -90,31 +92,51 @@ export default function ClientesPage() {
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                   <TableCell>Nome</TableCell>
-                  <TableCell>Telefone</TableCell>
-                  <TableCell>Endereço</TableCell>
-                  <TableCell align="right">Ações</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell align="center">Saldo de Refeições</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {clientes.map((cliente) => (
-                  <TableRow key={cliente.id}>
+                  <TableRow key={cliente.id} hover>
                     <TableCell>{cliente.nome}</TableCell>
                     <TableCell>{cliente.email}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => router.push(`/clientes/${cliente.id}/editar`)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleExcluir(cliente.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                    <TableCell align="center">
+                      <Chip
+                        label={`${cliente.saldo_refeicoes || 0} refeições`}
+                        color={
+                          !cliente.saldo_refeicoes || cliente.saldo_refeicoes === 0 ? 'error' :
+                          cliente.saldo_refeicoes <= 5 ? 'warning' : 'success'
+                        }
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <IconButton
+                          color="info"
+                          onClick={() => router.push(`/clientes/${cliente.id}`)}
+                          title="Ver Detalhes"
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                        <IconButton
+                          color="primary"
+                          onClick={() => router.push(`/clientes/${cliente.id}/editar`)}
+                          title="Editar"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleExcluir(cliente.id)}
+                          title="Excluir"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
