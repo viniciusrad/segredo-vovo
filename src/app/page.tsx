@@ -28,6 +28,10 @@ import { Refeicao, Usuario, Pedido } from "@/lib/supabase/types";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { usuarioService } from "@/lib/supabase/services/usuarioService";
+import { HistoricoPedidos } from '@/components/HistoricoPedidos';
+import { HistoricoAquisicoes } from '@/components/HistoricoAquisicoes';
+import { ClientesAtivos } from '@/components/ClientesAtivos';
+import { BotoesAcao } from '@/components/BotoesAcao';
 
 export default function Home() {
   const router = useRouter();
@@ -123,6 +127,10 @@ export default function Home() {
             Segedo da Vovó
           </Typography>
 
+          <Typography variant="h4" component="h1" gutterBottom>
+            Bem-vindo, {usuario?.nome}!
+          </Typography>
+
           <Box sx={{ mb: 6 }}>
             <Typography
               variant="h5"
@@ -215,6 +223,21 @@ export default function Home() {
               </Grid>
             )}
           </Box>
+          <BotoesAcao />
+
+          {usuario?.perfil === 'admin' && (
+            <Box mt={4}>
+              <ClientesAtivos />
+            </Box>
+          )}
+
+          {usuario?.perfil === 'cliente' && (
+            <Box mt={4}>
+              <HistoricoPedidos />
+              <HistoricoAquisicoes />
+            </Box>
+          )}
+
 
           {usuario?.perfil === "admin" && (
             <Box sx={{ mb: 4 }}>
