@@ -12,7 +12,6 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Button,
   Box,
   CircularProgress,
   Alert,
@@ -27,9 +26,11 @@ import { Pedido } from '@/lib/supabase/types';
 import { pedidoService } from '@/lib/supabase/services';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { useLoading } from '@/contexts/LoadingContext';
 
 export default function PedidosPage() {
   const router = useRouter();
+  const { startLoading, stopLoading } = useLoading();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,16 +63,20 @@ export default function PedidosPage() {
 
   const handleAtualizarStatus = async (id: string, novoStatus: 'entregue' | 'cancelado') => {
     try {
+      startLoading();
       await pedidoService.atualizarStatus(id, novoStatus);
       await carregarPedidos();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar status do pedido');
+    } finally {
+      stopLoading();
     }
   };
 
   const confirmarPedido = async (pedidoId: string) => {
     try {
       setAtualizando(pedidoId);
+      startLoading();
       await pedidoService.atualizarStatus(pedidoId, 'separado');
       await carregarPedidos(); // Recarrega a lista após atualização
     } catch (err) {
@@ -79,105 +84,86 @@ export default function PedidosPage() {
       console.error(err);
     } finally {
       setAtualizando(null);
+      stopLoading();
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'solicitado':
+        return 'warning';
+      case 'separado':
+        return 'info';
       case 'entregue':
         return 'success';
-      case 'separado':
-        return 'warning';
       case 'cancelado':
         return 'error';
-      case 'solicitado':
-        return 'info';
       default:
         return 'default';
     }
   };
 
+  const navegarParaDetalhesPedido = (pedidoId: string) => {
+    startLoading();
+    router.push(`/pedidos/${pedidoId}`);
+  };
+
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />
       </Box>
     );
   }
 
-  return (
-    <ProtectedRoute>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              Pedidos do Dia
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={carregarPedidos}
-              >
-                Atualizar Lista
-              </Button>
-            </Stack>
-          </Box>
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mt: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+  return (
+    <ProtectedRoute perfisPermitidos={['admin', 'atendente']}>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h5" gutterBottom component="div" sx={{ mb: 3 }}>
+            Pedidos do Dia
+          </Typography>
 
           {pedidos.length === 0 ? (
-            <Alert severity="info">Nenhum pedido registrado hoje.</Alert>
+            <Typography variant="body1" color="text.secondary" align="center">
+              Nenhum pedido encontrado para hoje.
+            </Typography>
           ) : (
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableRow>
                     <TableCell>Horário</TableCell>
                     <TableCell>Cliente</TableCell>
                     <TableCell>Refeição</TableCell>
                     <TableCell align="center">Quantidade</TableCell>
-                    <TableCell align="center">Valor Total</TableCell>
+                    <TableCell align="right">Valor Total</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="center">Ações</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {pedidos.map((pedido) => (
-                    <TableRow key={pedido.id} hover>
+                    <TableRow key={pedido.id}>
                       <TableCell>
                         {new Date(pedido.data_pedido).toLocaleTimeString('pt-BR')}
                       </TableCell>
-                      <TableCell>
-                        <Box
-                          component="span"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/clientes/${pedido.cliente_id}`);
-                          }}
-                          sx={{
-                            cursor: 'pointer',
-                            color: 'primary.main',
-                            '&:hover': {
-                              textDecoration: 'underline'
-                            }
-                          }}
-                        >
-                          {pedido.usuarios?.nome || 'Cliente não encontrado'}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {pedido.refeicoes?.nome || 'Refeição não encontrada'}
-                      </TableCell>
-                      <TableCell align="center">
-                        {pedido.quantidade}
-                      </TableCell>
-                      <TableCell align="center">
-                        R$ {pedido.valor_total.toFixed(2)}
+                      <TableCell>{pedido.usuarios?.nome}</TableCell>
+                      <TableCell>{pedido.refeicoes?.nome}</TableCell>
+                      <TableCell align="center">{pedido.quantidade}</TableCell>
+                      <TableCell align="right">
+                        {pedido.valor_total.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        })}
                       </TableCell>
                       <TableCell align="center">
                         <Chip
@@ -187,14 +173,26 @@ export default function PedidosPage() {
                         />
                       </TableCell>
                       <TableCell align="center">
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <Stack direction="row" spacing={1} justifyContent="center">
                           <IconButton
                             color="info"
-                            onClick={() => router.push(`/pedidos/${pedido.id}`)}
+                            onClick={() => navegarParaDetalhesPedido(pedido.id)}
                             title="Ver Detalhes"
                           >
                             <VisibilityIcon />
                           </IconButton>
+
+                          {pedido.status === 'solicitado' && (
+                            <IconButton
+                              color="success"
+                              onClick={() => confirmarPedido(pedido.id)}
+                              disabled={atualizando === pedido.id}
+                              title="Confirmar Pedido"
+                            >
+                              <CheckCircleOutlineIcon />
+                            </IconButton>
+                          )}
+
                           {pedido.status === 'separado' && (
                             <>
                               <IconButton
@@ -213,19 +211,7 @@ export default function PedidosPage() {
                               </IconButton>
                             </>
                           )}
-                          {pedido.status === 'solicitado' && (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
-                              startIcon={<CheckCircleOutlineIcon />}
-                              onClick={() => confirmarPedido(pedido.id)}
-                              disabled={atualizando === pedido.id}
-                            >
-                              {atualizando === pedido.id ? 'Confirmando...' : 'Confirmar'}
-                            </Button>
-                          )}
-                        </Box>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))}
