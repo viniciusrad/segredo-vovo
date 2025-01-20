@@ -56,6 +56,7 @@ export interface Usuario {
   cliente_id?: string;
   telefone?: string;
   endereco?: string;
+  saldo_refeicoes?: number;
   created_at?: string;
   updated_at?: string;
 } 

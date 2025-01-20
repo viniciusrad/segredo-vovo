@@ -17,15 +17,23 @@ import {
   TableRow,
   CircularProgress,
   Alert,
+  Card,
+  CardContent,
+  Button,
+  TextField,
+  Snackbar,
   Divider,
+  Collapse
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AddIcon from '@mui/icons-material/Add';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { usuarioService, pedidoService } from '@/lib/supabase/services';
+import { aquisicaoService } from '@/lib/supabase/services/aquisicaoService';
 import { Usuario, Pedido } from '@/lib/supabase/types';
 
 export default function DetalhesClientePage() {
@@ -35,6 +43,11 @@ export default function DetalhesClientePage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAquisicaoForm, setShowAquisicaoForm] = useState(false);
+  const [quantidade, setQuantidade] = useState<number>(0);
+  const [valorUnitario, setValorUnitario] = useState<number>(0);
+  const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
+  const [processando, setProcessando] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -72,6 +85,45 @@ export default function DetalhesClientePage() {
     };
   };
 
+  const handleAquisicao = async () => {
+    if (!quantidade || !valorUnitario || quantidade <= 0 || valorUnitario <= 0) {
+      setFeedback({
+        tipo: 'error',
+        mensagem: 'Por favor, preencha valores válidos para quantidade e valor unitário'
+      });
+      return;
+    }
+
+    try {
+      setProcessando(true);
+      await aquisicaoService.criar({
+        cliente_id: id as string,
+        quantidade,
+        valor_unitario: valorUnitario
+      });
+
+      setFeedback({
+        tipo: 'success',
+        mensagem: 'Aquisição registrada com sucesso!'
+      });
+      
+      // Recarregar dados do cliente para atualizar o saldo
+      await carregarDadosCliente();
+      
+      // Limpar formulário
+      setQuantidade(0);
+      setValorUnitario(0);
+      setShowAquisicaoForm(false);
+    } catch (err) {
+      setFeedback({
+        tipo: 'error',
+        mensagem: err instanceof Error ? err.message : 'Erro ao registrar aquisição'
+      });
+    } finally {
+      setProcessando(false);
+    }
+  };
+
   if (!usuario || usuario.perfil !== 'admin') {
     return <Typography>Acesso não autorizado</Typography>;
   }
@@ -93,6 +145,7 @@ export default function DetalhesClientePage() {
   }
 
   const estatisticas = calcularEstatisticas();
+  const valorTotal = quantidade * valorUnitario;
 
   return (
     <ProtectedRoute>
@@ -129,42 +182,109 @@ export default function DetalhesClientePage() {
                     <Typography>{cliente.endereco}</Typography>
                   </Box>
                 )}
+
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" color="primary">
+                    Saldo de Refeições: {cliente?.saldo_refeicoes || 0}
+                  </Typography>
+                </Box>
               </Stack>
             </Paper>
           </Grid>
 
-          {/* Estatísticas */}
+          {/* Estatísticas e Aquisição */}
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Total de Pedidos
-                  </Typography>
-                  <Typography variant="h6">
-                    {estatisticas.totalPedidos}
-                  </Typography>
+            <Stack spacing={2}>
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ textAlign: 'center', flex: 1 }}>
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Total de Pedidos
+                    </Typography>
+                    <Typography variant="h6">
+                      {estatisticas.totalPedidos}
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                  <Box sx={{ textAlign: 'center', flex: 1 }}>
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Pedidos Entregues
+                    </Typography>
+                    <Typography variant="h6">
+                      {estatisticas.pedidosEntregues}
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+                  <Box sx={{ textAlign: 'center', flex: 1 }}>
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Valor Total
+                    </Typography>
+                    <Typography variant="h6">
+                      R$ {estatisticas.valorTotal.toFixed(2)}
+                    </Typography>
+                  </Box>
                 </Box>
-                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Pedidos Entregues
-                  </Typography>
-                  <Typography variant="h6">
-                    {estatisticas.pedidosEntregues}
-                  </Typography>
-                </Box>
-                <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Valor Total
-                  </Typography>
-                  <Typography variant="h6">
-                    R$ {estatisticas.valorTotal.toFixed(2)}
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
+              </Paper>
+
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setShowAquisicaoForm(!showAquisicaoForm)}
+                fullWidth
+              >
+                {showAquisicaoForm ? 'Cancelar Aquisição' : 'Nova Aquisição de Refeições'}
+              </Button>
+
+              <Collapse in={showAquisicaoForm}>
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Stack spacing={2}>
+                    <Typography variant="h6">Nova Aquisição</Typography>
+                    
+                    <TextField
+                      label="Quantidade"
+                      type="number"
+                      value={quantidade}
+                      onChange={(e) => setQuantidade(Number(e.target.value))}
+                      disabled={processando}
+                      fullWidth
+                      InputProps={{ inputProps: { min: 1 } }}
+                    />
+                    
+                    <TextField
+                      label="Valor Unitário (R$)"
+                      type="number"
+                      value={valorUnitario}
+                      onChange={(e) => setValorUnitario(Number(e.target.value))}
+                      disabled={processando}
+                      fullWidth
+                      InputProps={{ inputProps: { min: 0, step: 0.01 } }}
+                    />
+
+                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.default' }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Resumo da Aquisição
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography>Valor Total:</Typography>
+                        <Typography variant="h6" color="primary">
+                          R$ {valorTotal.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </Paper>
+
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleAquisicao}
+                      disabled={processando || !quantidade || !valorUnitario}
+                      fullWidth
+                    >
+                      {processando ? 'Processando...' : 'Confirmar Aquisição'}
+                    </Button>
+                  </Stack>
+                </Paper>
+              </Collapse>
+            </Stack>
           </Grid>
 
           {/* Histórico de Pedidos */}
@@ -216,6 +336,19 @@ export default function DetalhesClientePage() {
             </TableContainer>
           </Grid>
         </Grid>
+
+        <Snackbar
+          open={!!feedback}
+          autoHideDuration={3000}
+          onClose={() => setFeedback(null)}
+        >
+          <Alert 
+            severity={feedback?.tipo || 'info'} 
+            onClose={() => setFeedback(null)}
+          >
+            {feedback?.mensagem}
+          </Alert>
+        </Snackbar>
       </Container>
     </ProtectedRoute>
   );

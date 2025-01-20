@@ -39,7 +39,9 @@ export default function Home() {
   const carregarRefeicoes = async () => {
     try {
       const data = await refeicaoService.listarTodas();
-      setRefeicoes(data);
+      // Filtra apenas refeições com quantidade disponível
+      const refeicoesDisponiveis = data.filter(refeicao => refeicao.quantidade_disponivel > 0);
+      setRefeicoes(refeicoesDisponiveis);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar refeições');
     } finally {
@@ -62,6 +64,7 @@ export default function Home() {
   const carregarPedidosDoDia = async () => {
     try {
       const pedidos = await pedidoService.listarTodos();
+      console.log(pedidos);
       // Filtra apenas os pedidos do dia atual
       const hoje = new Date().toISOString().split('T')[0];
       const pedidosHoje = pedidos.filter(pedido => 
@@ -92,7 +95,7 @@ export default function Home() {
               mb: 4
             }}
           >
-            Sistema de Controle de Quentinhas
+            Segedo da Vovó
           </Typography>
 
           <Box sx={{ mb: 6 }}>
@@ -103,6 +106,8 @@ export default function Home() {
               <Typography>Carregando refeições...</Typography>
             ) : error ? (
               <Alert severity="error">{error}</Alert>
+            ) : refeicoes.length === 0 ? (
+              <Alert severity="info">Nenhuma refeição disponível no momento.</Alert>
             ) : (
               <Grid container spacing={3}>
                 {refeicoes.map((refeicao) => (
