@@ -1,11 +1,5 @@
 import { supabase } from '../config';
-import { Usuario, PerfilUsuario } from '../types';
-
-interface CriarUsuarioDTO {
-  nome: string;
-  email: string;
-  perfil: PerfilUsuario;
-}
+import { Usuario } from '../types';
 
 export const usuarioService = {
   async listarTodos(): Promise<Usuario[]> {
@@ -29,36 +23,25 @@ export const usuarioService = {
     return data;
   },
 
-  async criar(usuario: CriarUsuarioDTO): Promise<Usuario> {
-    // Primeiro, criar o usuário no auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: usuario.email,
-      email_confirm: true,
-      user_metadata: {
-        full_name: usuario.nome
-      }
-    });
-
-    if (authError) throw authError;
-
-    // Depois, criar o registro na tabela de usuários
+  async buscarPorEmail(email: string): Promise<Usuario | null> {
     const { data, error } = await supabase
       .from('usuarios')
-      .insert([{
-        id: authData.user.id,
-        email: usuario.email,
-        nome: usuario.nome,
-        perfil: usuario.perfil
-      }])
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async criar(usuario: Omit<Usuario, 'id' | 'created_at' | 'updated_at'>): Promise<Usuario> {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .insert([usuario])
       .select()
       .single();
 
-    if (error) {
-      // Se houver erro, tentar remover o usuário do auth para manter consistência
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      throw error;
-    }
-
+    if (error) throw error;
     return data;
   },
 

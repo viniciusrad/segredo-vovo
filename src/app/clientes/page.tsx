@@ -20,13 +20,13 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useRouter } from 'next/navigation';
-import { Cliente } from '@/lib/supabase/types';
+import { Usuario } from '@/lib/supabase/types';
 import { clienteService } from '@/lib/supabase/services';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function ClientesPage() {
   const router = useRouter();
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clientes, setClientes] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +36,7 @@ export default function ClientesPage() {
 
   const carregarClientes = async () => {
     try {
-      const data = await clienteService.listarTodos();
+      const data = await clienteService.listarUsuariosClientes();
       setClientes(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar clientes');
@@ -101,8 +101,7 @@ export default function ClientesPage() {
                 {clientes.map((cliente) => (
                   <TableRow key={cliente.id}>
                     <TableCell>{cliente.nome}</TableCell>
-                    <TableCell>{cliente.telefone}</TableCell>
-                    <TableCell>{cliente.endereco}</TableCell>
+                    <TableCell>{cliente.email}</TableCell>
                     <TableCell align="right">
                       <IconButton
                         color="primary"

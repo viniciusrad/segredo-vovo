@@ -1,5 +1,5 @@
 import { supabase } from '../config';
-import { Cliente } from '../types';
+import { Cliente, Usuario } from '../types';
 
 export const clienteService = {
   async listarTodos(): Promise<Cliente[]> {
@@ -53,5 +53,28 @@ export const clienteService = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  async listarUsuariosClientes(): Promise<Usuario[]> {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('perfil', 'cliente')
+      .order('nome');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async buscarUsuarioClientePorId(id: string): Promise<Usuario | null> {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('id', id)
+      .eq('perfil', 'cliente')
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 }; 

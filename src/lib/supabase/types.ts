@@ -53,7 +53,9 @@ export interface Usuario {
   nome: string;
   perfil: PerfilUsuario;
   foto_url?: string;
-  cliente_id?: string; // Referência ao cliente se o perfil for 'cliente'
+  cliente_id?: string;
+  telefone?: string;
+  endereco?: string;
   created_at?: string;
   updated_at?: string;
 } 
