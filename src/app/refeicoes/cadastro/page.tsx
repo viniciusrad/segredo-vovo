@@ -14,11 +14,14 @@ import {
   Alert,
   Snackbar,
   Chip,
-  Autocomplete
+  Autocomplete,
+  Divider
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { refeicaoService } from '@/lib/supabase/services';
 import { Refeicao } from '@/lib/supabase/types';
+import { GUARNICOES } from '@/app/conts';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function CadastroRefeicao() {
   const router = useRouter();
@@ -55,11 +58,24 @@ export default function CadastroRefeicao() {
     }
   };
 
+  const handleAddGuarnicao = (guarnicao: string) => {
+    if (!refeicao.ingredientes.includes(guarnicao)) {
+      setRefeicao(prev => ({
+        ...prev,
+        ingredientes: [...prev.ingredientes, guarnicao]
+      }));
+    }
+  };
+
   const handleDeleteIngrediente = (ingredienteToDelete: string) => {
     setRefeicao(prev => ({
       ...prev,
       ingredientes: prev.ingredientes.filter(ing => ing !== ingredienteToDelete)
     }));
+  };
+
+  const getGuarnicoesDisponiveis = () => {
+    return GUARNICOES.filter(g => !refeicao.ingredientes.includes(g));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -165,37 +181,69 @@ export default function CadastroRefeicao() {
             variant="outlined"
           />
 
-          <Autocomplete
-            freeSolo
-            options={[]}
-            value={ingredienteInput}
-            onInputChange={(event, newInputValue) => {
-              setIngredienteInput(newInputValue);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleAddIngrediente();
-              }
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Adicionar Ingrediente"
-                variant="outlined"
-                onBlur={handleAddIngrediente}
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Guarnições
+            </Typography>
+            
+            <Stack spacing={2}>
+              <Autocomplete
+                freeSolo
+                options={[]}
+                value={ingredienteInput}
+                onInputChange={(event, newInputValue) => {
+                  setIngredienteInput(newInputValue);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAddIngrediente();
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Adicionar Guarnição Personalizada"
+                    variant="outlined"
+                    onBlur={handleAddIngrediente}
+                  />
+                )}
               />
-            )}
-          />
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {refeicao.ingredientes.map((ing, index) => (
-              <Chip
-                key={index}
-                label={ing}
-                onDelete={() => handleDeleteIngrediente(ing)}
-                color="primary"
-              />
-            ))}
+
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Guarnições Selecionadas
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                  {refeicao.ingredientes.map((ing, index) => (
+                    <Chip
+                      key={index}
+                      label={ing}
+                      onDelete={() => handleDeleteIngrediente(ing)}
+                      color="primary"
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Guarnições Disponíveis
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {getGuarnicoesDisponiveis().map((guarnicao, index) => (
+                    <Chip
+                      key={index}
+                      label={guarnicao}
+                      onClick={() => handleAddGuarnicao(guarnicao)}
+                      color="secondary"
+                      variant="outlined"
+                      icon={<AddCircleOutlineIcon />}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Stack>
           </Box>
 
           <FormControlLabel
