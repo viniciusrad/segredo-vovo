@@ -15,11 +15,8 @@ import {
   TextField,
   Snackbar,
   Chip,
-  IconButton,
-  Tooltip
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { Refeicao } from '@/lib/supabase/types';
 import { refeicaoService } from '@/lib/supabase/services';
 import { pedidoService } from '@/lib/supabase/services';

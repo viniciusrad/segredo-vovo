@@ -5,7 +5,6 @@ import {
   Box,
   Container,
   Typography,
-  Paper,
   Grid,
   Card,
   CardContent,
@@ -23,7 +22,6 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
