@@ -26,12 +26,14 @@ import { useRouter } from 'next/navigation';
 import { Pedido } from '@/lib/supabase/types';
 import { pedidoService } from '@/lib/supabase/services';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 export default function PedidosPage() {
   const router = useRouter();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [atualizando, setAtualizando] = useState<string | null>(null);
 
   useEffect(() => {
     carregarPedidos();
@@ -42,6 +44,7 @@ export default function PedidosPage() {
 
   const carregarPedidos = async () => {
     try {
+      setLoading(true);
       const data = await pedidoService.listarTodos();
       // Filtra apenas os pedidos do dia atual
       const hoje = new Date().toISOString().split('T')[0];
@@ -51,6 +54,7 @@ export default function PedidosPage() {
       setPedidos(pedidosHoje);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar pedidos');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -65,6 +69,19 @@ export default function PedidosPage() {
     }
   };
 
+  const confirmarPedido = async (pedidoId: string) => {
+    try {
+      setAtualizando(pedidoId);
+      await pedidoService.atualizarStatus(pedidoId, 'separado');
+      await carregarPedidos(); // Recarrega a lista após atualização
+    } catch (err) {
+      setError('Erro ao confirmar pedido');
+      console.error(err);
+    } finally {
+      setAtualizando(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'entregue':
@@ -73,6 +90,8 @@ export default function PedidosPage() {
         return 'warning';
       case 'cancelado':
         return 'error';
+      case 'solicitado':
+        return 'info';
       default:
         return 'default';
     }
@@ -193,6 +212,18 @@ export default function PedidosPage() {
                                 <CancelIcon />
                               </IconButton>
                             </>
+                          )}
+                          {pedido.status === 'solicitado' && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              startIcon={<CheckCircleOutlineIcon />}
+                              onClick={() => confirmarPedido(pedido.id)}
+                              disabled={atualizando === pedido.id}
+                            >
+                              {atualizando === pedido.id ? 'Confirmando...' : 'Confirmar'}
+                            </Button>
                           )}
                         </Box>
                       </TableCell>
