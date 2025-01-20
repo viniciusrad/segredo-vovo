@@ -26,7 +26,7 @@ export interface Pedido {
   refeicao_id: string;
   quantidade: number;
   valor_total: number;
-  status: 'pendente' | 'separado' | 'entregue' | 'cancelado';
+  status: StatusPedido;
   data_pedido: string;
   porcoes: string[];
   created_at?: string;
@@ -60,4 +60,6 @@ export interface Usuario {
   saldo_refeicoes?: number;
   created_at?: string;
   updated_at?: string;
-} 
+}
+
+export type StatusPedido = 'solicitado' | 'separado' | 'pronto' | 'entregue' | 'cancelado'; 

@@ -1,5 +1,5 @@
 import { supabase } from '../config';
-import { Pedido, Refeicao } from '../types';
+import { Pedido, Refeicao, StatusPedido } from '../types';
 
 export const pedidoService = {
   async listarTodos(): Promise<Pedido[]> {
@@ -50,15 +50,23 @@ export const pedidoService = {
     return data;
   },
 
-  async criar(pedido: Omit<Pedido, 'id' | 'created_at' | 'updated_at'>): Promise<Pedido> {
-    const { data, error } = await supabase
-      .from('pedidos')
-      .insert([pedido])
-      .select()
-      .single();
+  async criar(pedido: Omit<Pedido, 'id' | 'created_at' | 'updated_at' | 'status'>) {
+    try {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .insert({
+          ...pedido,
+          status: 'solicitado' as StatusPedido
+        })
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
+      throw error;
+    }
   },
 
   async atualizarStatus(id: string, status: Pedido['status']): Promise<Pedido> {
@@ -111,7 +119,7 @@ export const pedidoService = {
       .from('pedidos')
       .insert([{
         ...pedido,
-        status: 'separado',
+        status: 'solicitado' as StatusPedido,
         data_pedido: new Date().toISOString()
       }])
       .select()
