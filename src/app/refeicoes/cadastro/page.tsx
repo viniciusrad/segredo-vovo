@@ -9,13 +9,10 @@ import {
   TextField,
   Button,
   Stack,
-  FormControlLabel,
-  Switch,
   Alert,
   Snackbar,
   Chip,
   Autocomplete,
-  Divider
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { refeicaoService } from '@/lib/supabase/services';
