@@ -21,7 +21,7 @@ import { refeicaoService } from '@/lib/supabase/services';
 import { Refeicao } from '@/lib/supabase/types';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { ImageUpload } from '@/components/ImageUpload';
+import { ImageUpload } from '@/components/ImageUpload/index';
 
 export default function EditarRefeicaoPage() {
   const router = useRouter();
