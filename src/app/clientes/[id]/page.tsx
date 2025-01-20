@@ -17,8 +17,6 @@ import {
   TableRow,
   CircularProgress,
   Alert,
-  Card,
-  CardContent,
   Divider,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
