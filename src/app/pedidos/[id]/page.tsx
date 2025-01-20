@@ -133,9 +133,21 @@ export default function DetalhesPedidoPage() {
                     <Typography variant="subtitle1">
                       Cliente:
                     </Typography>
-                    <Typography>
-                      {pedido.usuarios?.nome || 'Cliente não encontrado'}
-                    </Typography>
+                    <Box
+                      component="span"
+                      onClick={() => router.push(`/clientes/${pedido.cliente_id}`)}
+                      sx={{
+                        cursor: 'pointer',
+                        color: 'primary.main',
+                        '&:hover': {
+                          textDecoration: 'underline'
+                        }
+                      }}
+                    >
+                      <Typography>
+                        {pedido.usuarios?.nome || 'Cliente não encontrado'}
+                      </Typography>
+                    </Box>
                   </Box>
 
                   {pedido.usuarios?.telefone && (

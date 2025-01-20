@@ -178,6 +178,7 @@ export default function Home() {
                         <TableRow
                           key={cliente.id}
                           hover
+                          onClick={() => router.push(`/clientes/${cliente.id}`)}
                           sx={{
                             cursor: 'pointer',
                             '&:hover': {
@@ -198,7 +199,10 @@ export default function Home() {
                             <Button
                               size="small"
                               variant="outlined"
-                              onClick={() => router.push(`/clientes/${cliente.id}`)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Evita que o clique no botão propague para a linha
+                                router.push(`/clientes/${cliente.id}`);
+                              }}
                             >
                               Ver Detalhes
                             </Button>
@@ -280,7 +284,22 @@ export default function Home() {
                             {new Date(pedido.data_pedido).toLocaleTimeString('pt-BR')}
                           </TableCell>
                           <TableCell>
-                            {pedido.usuarios?.nome || 'Cliente não encontrado'}
+                            <Box
+                              component="span"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/clientes/${pedido.cliente_id}`);
+                              }}
+                              sx={{
+                                cursor: 'pointer',
+                                color: 'primary.main',
+                                '&:hover': {
+                                  textDecoration: 'underline'
+                                }
+                              }}
+                            >
+                              {pedido.usuarios?.nome || 'Cliente não encontrado'}
+                            </Box>
                           </TableCell>
                           <TableCell>
                             {pedido.refeicoes?.nome || 'Refeição não encontrada'}
