@@ -28,6 +28,7 @@ export interface Pedido {
   valor_total: number;
   status: 'pendente' | 'separado' | 'entregue' | 'cancelado';
   data_pedido: string;
+  porcoes: string[];
   created_at?: string;
   updated_at?: string;
   usuarios?: {

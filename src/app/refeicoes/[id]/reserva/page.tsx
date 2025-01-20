@@ -13,13 +13,19 @@ import {
   Stack,
   Divider,
   TextField,
-  Snackbar
+  Snackbar,
+  Chip,
+  IconButton,
+  Tooltip
 } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { Refeicao } from '@/lib/supabase/types';
 import { refeicaoService } from '@/lib/supabase/services';
 import { pedidoService } from '@/lib/supabase/services';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { GUARNICOES } from '@/app/conts';
 
 const ReservaRefeicaoPage = () => {
   const params = useParams();
@@ -31,10 +37,31 @@ const ReservaRefeicaoPage = () => {
   const [processando, setProcessando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
+  const [guarnicoesPersonalizadas, setGuarnicoesPersonalizadas] = useState<string[]>([]);
 
   useEffect(() => {
     carregarRefeicao();
   }, [params.id]);
+
+  useEffect(() => {
+    if (refeicao?.ingredientes) {
+      setGuarnicoesPersonalizadas([...refeicao.ingredientes]);
+    }
+  }, [refeicao]);
+
+  const handleRemoverGuarnicao = (guarnicao: string) => {
+    setGuarnicoesPersonalizadas(prev => prev.filter(g => g !== guarnicao));
+  };
+
+  const handleAdicionarGuarnicao = (guarnicao: string) => {
+    if (!guarnicoesPersonalizadas.includes(guarnicao)) {
+      setGuarnicoesPersonalizadas(prev => [...prev, guarnicao]);
+    }
+  };
+
+  const getGuarnicoesDisponiveis = () => {
+    return GUARNICOES.filter(g => !guarnicoesPersonalizadas.includes(g));
+  };
 
   const carregarRefeicao = async () => {
     try {
@@ -60,7 +87,6 @@ const ReservaRefeicaoPage = () => {
     setError(null);
 
     try {
-      // Criar o pedido e atualizar a quantidade
       await pedidoService.criarPedidoEAtualizarQuantidade(
         {
           cliente_id: usuario.id,
@@ -68,7 +94,8 @@ const ReservaRefeicaoPage = () => {
           quantidade: quantidade,
           valor_total: refeicao.preco * quantidade,
           status: 'separado',
-          data_pedido: new Date().toISOString()
+          data_pedido: new Date().toISOString(),
+          porcoes: guarnicoesPersonalizadas
         },
         refeicao
       );
@@ -78,7 +105,6 @@ const ReservaRefeicaoPage = () => {
         mensagem: 'Reserva realizada com sucesso!'
       });
 
-      // Redirecionar após 2 segundos
       setTimeout(() => {
         router.push('/');
       }, 2000);
@@ -140,6 +166,42 @@ const ReservaRefeicaoPage = () => {
               <Typography variant="body1" color="text.secondary">
                 {refeicao.descricao}
               </Typography>
+            </Box>
+
+            <Divider />
+
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Guarnições Selecionadas
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {guarnicoesPersonalizadas.map((guarnicao, index) => (
+                  <Chip
+                    key={index}
+                    label={guarnicao}
+                    color="primary"
+                    onDelete={() => handleRemoverGuarnicao(guarnicao)}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Guarnições Disponíveis
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {getGuarnicoesDisponiveis().map((guarnicao, index) => (
+                  <Chip
+                    key={index}
+                    label={guarnicao}
+                    color="secondary"
+                    variant="outlined"
+                    onClick={() => handleAdicionarGuarnicao(guarnicao)}
+                    icon={<AddCircleOutlineIcon />}
+                  />
+                ))}
+              </Box>
             </Box>
 
             <Divider />
