@@ -29,6 +29,7 @@ interface FormData {
   senha: string;
   confirmarSenha: string;
   perfil: PerfilUsuario;
+  telefone: string;
 }
 
 const perfis: { value: PerfilUsuario; label: string }[] = [
@@ -45,7 +46,8 @@ export default function CadastroPage() {
     email: '',
     senha: '',
     confirmarSenha: '',
-    perfil: 'cliente'
+    perfil: 'cliente',
+    telefone: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +83,8 @@ export default function CadastroPage() {
         nome: formData.nome,
         email: formData.email,
         senha: formData.senha,
-        perfil: formData.perfil
+        perfil: formData.perfil,
+        telefone: formData.telefone
       });
       
       // Após cadastrar, fazer login automaticamente
@@ -162,6 +165,16 @@ export default function CadastroPage() {
             value={formData.email}
             onChange={handleInputChange}
             required
+            variant="outlined"
+          />
+
+          <TextField
+            fullWidth
+            label="Telefone"
+            name="telefone"
+            value={formData.telefone}
+            onChange={handleInputChange}
+            placeholder="(00) 00000-0000"
             variant="outlined"
           />
 

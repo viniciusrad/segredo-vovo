@@ -150,15 +150,15 @@ export default function DetalhesPedidoPage() {
                     </Box>
                   </Box>
 
-                  {pedido.usuarios?.telefone && (
+                  {pedido.usuarios?.email && (
                     <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
-                      Telefone: {pedido.usuarios.telefone}
+                      Email: {pedido.usuarios.email}
                     </Typography>
                   )}
 
-                  {pedido.usuarios?.endereco && (
+                  {pedido.usuarios?.telefone && (
                     <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
-                      Endereço: {pedido.usuarios.endereco}
+                      Telefone: {pedido.usuarios.telefone}
                     </Typography>
                   )}
                 </Stack>

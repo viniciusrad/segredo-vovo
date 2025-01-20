@@ -10,7 +10,8 @@ export const pedidoService = {
         usuarios:cliente_id (
           id,
           nome,
-          email
+          email,
+          telefone
         ),
         refeicoes (
           id,
@@ -33,8 +34,7 @@ export const pedidoService = {
           id,
           nome,
           email,
-          telefone,
-          endereco
+          telefone
         ),
         refeicoes (
           id,
@@ -81,7 +81,8 @@ export const pedidoService = {
         usuarios:cliente_id (
           id,
           nome,
-          email
+          email,
+          telefone
         ),
         refeicoes (
           id,

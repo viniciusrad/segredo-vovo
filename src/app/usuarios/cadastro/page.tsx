@@ -26,6 +26,7 @@ interface FormData {
   nome: string;
   email: string;
   perfil: PerfilUsuario;
+  telefone: string;
 }
 
 const perfis: { value: PerfilUsuario; label: string }[] = [
@@ -39,7 +40,8 @@ export default function CadastroUsuarioPage() {
   const [formData, setFormData] = useState<FormData>({
     nome: '',
     email: '',
-    perfil: 'cliente'
+    perfil: 'cliente',
+    telefone: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +73,8 @@ export default function CadastroUsuarioPage() {
       setFormData({
         nome: '',
         email: '',
-        perfil: 'cliente'
+        perfil: 'cliente',
+        telefone: ''
       });
       setTimeout(() => {
         router.push('/usuarios');
@@ -116,6 +119,17 @@ export default function CadastroUsuarioPage() {
               onChange={handleInputChange}
               required
               variant="outlined"
+            />
+
+            <TextField
+              fullWidth
+              label="Telefone"
+              name="telefone"
+              value={formData.telefone}
+              onChange={handleInputChange}
+              required
+              variant="outlined"
+              placeholder="(00) 00000-0000"
             />
 
             <FormControl fullWidth required>
