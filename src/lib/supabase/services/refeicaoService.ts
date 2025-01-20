@@ -47,8 +47,6 @@ export const refeicaoService = {
   },
 
   async atualizarQuantidade(id: string, quantidade: number): Promise<Refeicao> {
-
-
     try {
       //se a refeição existe
       const { data: refeicaoExistente, error: errorBusca } = await supabase
@@ -61,11 +59,12 @@ export const refeicaoService = {
         throw new Error('Refeição não encontrada');
       }
 
-      //  apenas a quantidade
+      // Atualiza quantidade e disponibilidade
       const { data, error } = await supabase
         .from('refeicoes')
         .update({
-          quantidade_disponivel: quantidade
+          quantidade_disponivel: quantidade,
+          disponivel: quantidade > 0
         })
         .eq('id', id)
         .select()

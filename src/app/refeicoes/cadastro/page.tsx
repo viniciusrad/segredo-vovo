@@ -41,10 +41,20 @@ export default function CadastroRefeicao() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setRefeicao(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value
-    }));
+    
+    if (name === 'quantidade_disponivel') {
+      const quantidade = parseFloat(value);
+      setRefeicao(prev => ({
+        ...prev,
+        quantidade_disponivel: quantidade,
+        disponivel: quantidade > 0
+      }));
+    } else {
+      setRefeicao(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value
+      }));
+    }
   };
 
   const handleAddIngrediente = () => {
@@ -245,18 +255,6 @@ export default function CadastroRefeicao() {
               </Box>
             </Stack>
           </Box>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={refeicao.disponivel}
-                onChange={handleInputChange}
-                name="disponivel"
-                color="primary"
-              />
-            }
-            label="Disponível para Pedidos"
-          />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button
