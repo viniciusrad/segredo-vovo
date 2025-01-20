@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Box,
   Container,
@@ -28,6 +28,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { usuarioService, pedidoService } from '@/lib/supabase/services';
@@ -46,6 +47,7 @@ export default function DetalhesClientePage() {
   const [valorUnitario, setValorUnitario] = useState<number>(0);
   const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
   const [processando, setProcessando] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (id) {
@@ -148,9 +150,19 @@ export default function DetalhesClientePage() {
   return (
     <ProtectedRoute>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Detalhes do Cliente
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" component="h1">
+            Detalhes do Cliente
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<EditIcon />}
+            onClick={() => router.push(`/clientes/${id}/editar`)}
+          >
+            Editar Cliente
+          </Button>
+        </Box>
 
         <Grid container spacing={3}>
           {/* Informações do Cliente */}
