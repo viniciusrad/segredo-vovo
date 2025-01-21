@@ -225,12 +225,6 @@ export default function Home() {
           </Box>
           <BotoesAcao />
 
-          {usuario?.perfil === 'admin' && (
-            <Box mt={4}>
-              <ClientesAtivos />
-            </Box>
-          )}
-
           {usuario?.perfil === 'cliente' && (
             <Box mt={4}>
               <HistoricoPedidos />
@@ -442,10 +436,10 @@ export default function Home() {
                                 pedido.status === "entregue"
                                   ? "success"
                                   : pedido.status === "separado"
-                                  ? "warning"
-                                  : pedido.status === "cancelado"
-                                  ? "error"
-                                  : "default"
+                                    ? "warning"
+                                    : pedido.status === "cancelado"
+                                      ? "error"
+                                      : "default"
                               }
                               size="small"
                             />
