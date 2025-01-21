@@ -86,7 +86,7 @@ export default function CadastroPage() {
         perfil: formData.perfil,
         telefone: formData.telefone
       });
-      
+
       // Após cadastrar, fazer login automaticamente
       await login(formData.email, formData.senha);
       router.push('/');
@@ -99,8 +99,8 @@ export default function CadastroPage() {
 
   if (loading) {
     return (
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           height: '100vh',
           display: 'flex',
           alignItems: 'center',
@@ -113,8 +113,8 @@ export default function CadastroPage() {
   }
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -122,11 +122,11 @@ export default function CadastroPage() {
       }}
     >
       <Container maxWidth="sm">
-        <Paper 
+        <Paper
           component="form"
           onSubmit={handleSubmit}
-          elevation={3} 
-          sx={{ 
+          elevation={3}
+          sx={{
             p: 4,
             display: 'flex',
             flexDirection: 'column',
@@ -208,11 +208,11 @@ export default function CadastroPage() {
               label="Perfil"
               onChange={handleSelectChange}
             >
-              {perfis.map((perfil) => (
+              {perfis.map((perfil) => (perfil.value != "admin" && (
                 <MenuItem key={perfil.value} value={perfil.value}>
                   {perfil.label}
                 </MenuItem>
-              ))}
+              )))}
             </Select>
           </FormControl>
 
