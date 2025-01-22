@@ -18,16 +18,14 @@ import {
   Chip,
   Alert,
 } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import { refeicaoService, pedidoService } from "@/lib/supabase/services";
-import { Refeicao, Usuario, Pedido } from "@/lib/supabase/types";
+import { Refeicao, Pedido } from "@/lib/supabase/types";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { usuarioService } from "@/lib/supabase/services/usuarioService";
 import { HistoricoPedidos } from '@/components/HistoricoPedidos';
 import { HistoricoAquisicoes } from '@/components/HistoricoAquisicoes';
 import { BotoesAcao } from '@/components/BotoesAcao';
@@ -36,13 +34,10 @@ export default function Home() {
   const router = useRouter();
   const { usuario } = useAuth();
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
-  const [clientes, setClientes] = useState<Usuario[]>([]);
   const [pedidosDoDia, setPedidosDoDia] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingClientes, setLoadingClientes] = useState(true);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [errorClientes, setErrorClientes] = useState<string | null>(null);
   const [errorPedidos, setErrorPedidos] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,7 +46,6 @@ export default function Home() {
 
   useEffect(() => {
     if (usuario?.perfil === "admin") {
-      carregarClientes();
       carregarPedidosDoDia();
     }
   }, [usuario?.perfil]);
@@ -73,19 +67,7 @@ export default function Home() {
     }
   };
 
-  const carregarClientes = async () => {
-    try {
-      const usuarios = await usuarioService.listarTodos();
-      const clientesAtivos = usuarios.filter((u) => u.perfil === "cliente");
-      setClientes(clientesAtivos);
-    } catch (err) {
-      setErrorClientes(
-        err instanceof Error ? err.message : "Erro ao carregar clientes"
-      );
-    } finally {
-      setLoadingClientes(false);
-    }
-  };
+ 
 
   const carregarPedidosDoDia = async () => {
     try {

@@ -1,5 +1,5 @@
 import { supabase } from '../config';
-import { Usuario, PontoVenda } from '../types';
+import { Usuario } from '../types';
 
 export const usuarioService = {
   async listarTodos(): Promise<Usuario[]> {
