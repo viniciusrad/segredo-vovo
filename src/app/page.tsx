@@ -127,7 +127,7 @@ export default function Home() {
             Segedo da Vovó
           </Typography>
 
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ color: "#666" }}>
             Bem-vindo, {usuario?.nome}!
           </Typography>
 
@@ -239,69 +239,7 @@ export default function Home() {
           )}
 
 
-          {usuario?.perfil === "admin" && (
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="h5"
-                component="h2"
-                gutterBottom
-                sx={{ mb: 3, fontWeight: "bold", color: "#000" }}
-              >
-                Clientes Ativos
-              </Typography>
-              {loadingClientes ? (
-                <Typography>Carregando clientes...</Typography>
-              ) : errorClientes ? (
-                <Alert severity="error">{errorClientes}</Alert>
-              ) : (
-                <TableContainer component={Paper} elevation={3}>
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                        <TableCell>Nome</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell align="center">Status</TableCell>
-                        <TableCell align="center">Ações</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {clientes.map((cliente) => (
-                        <TableRow
-                          key={cliente.id}
-                          hover
-                          onClick={() => router.push(`/clientes/${cliente.id}`)}
-                          sx={{
-                            cursor: "pointer",
-                            "&:hover": {
-                              backgroundColor: "rgba(0, 0, 0, 0.04)",
-                            },
-                          }}
-                        >
-                          <TableCell>{cliente.nome}</TableCell>
-                          <TableCell>{cliente.email}</TableCell>
-                          <TableCell align="center">
-                            <Chip label="Ativo" color="success" size="small" />
-                          </TableCell>
-                          <TableCell align="center">
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Evita que o clique no botão propague para a linha
-                                router.push(`/clientes/${cliente.id}`);
-                              }}
-                            >
-                              Ver Detalhes
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Box>
-          )}
+          
           {usuario?.perfil === "admin" && (
             <Box
               sx={{ display: "flex", gap: 3, justifyContent: "center", mt: 4 }}

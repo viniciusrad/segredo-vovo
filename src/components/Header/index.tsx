@@ -27,7 +27,8 @@ const pages = [
 ];
 
 const adminPages = [
-  { title: 'Usuários', path: '/usuarios' }
+  { title: 'Usuários', path: '/usuarios' },
+  { title: 'Pontos de Venda', path: '/pontos-venda' }
 ];
 
 export function Header() {

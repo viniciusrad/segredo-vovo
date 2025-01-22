@@ -62,4 +62,15 @@ export interface Usuario {
   updated_at?: string;
 }
 
-export type StatusPedido = 'solicitado' | 'separado' | 'pronto' | 'entregue' | 'cancelado'; 
+export type StatusPedido = 'solicitado' | 'separado' | 'pronto' | 'entregue' | 'cancelado';
+
+export interface PontoVenda {
+  id: string;
+  nome: string;
+  endereco: string;
+  responsavel: string;
+  telefone: string;
+  ativo: boolean;
+  created_at?: string;
+  updated_at?: string;
+} 
