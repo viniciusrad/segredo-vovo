@@ -30,7 +30,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usuarioService } from "@/lib/supabase/services/usuarioService";
 import { HistoricoPedidos } from '@/components/HistoricoPedidos';
 import { HistoricoAquisicoes } from '@/components/HistoricoAquisicoes';
-import { ClientesAtivos } from '@/components/ClientesAtivos';
 import { BotoesAcao } from '@/components/BotoesAcao';
 
 export default function Home() {
