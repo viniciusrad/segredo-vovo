@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -19,8 +19,9 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { authService } from '@/lib/supabase/services/authService';
-import { PerfilUsuario } from '@/lib/supabase/types';
+import { PerfilUsuario, PontoVenda } from '@/lib/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { pontoVendaService } from '@/lib/supabase/services';
 import Link from 'next/link';
 
 interface FormData {
@@ -30,6 +31,7 @@ interface FormData {
   confirmarSenha: string;
   perfil: PerfilUsuario;
   telefone: string;
+  id_ponto_venda: string;
 }
 
 const perfis: { value: PerfilUsuario; label: string }[] = [
@@ -47,10 +49,29 @@ export default function CadastroPage() {
     senha: '',
     confirmarSenha: '',
     perfil: 'cliente',
-    telefone: ''
+    telefone: '',
+    id_ponto_venda: ''
   });
+  const [pontosVenda, setPontosVenda] = useState<PontoVenda[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingPontosVenda, setLoadingPontosVenda] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    carregarPontosVenda();
+  }, []);
+
+  const carregarPontosVenda = async () => {
+    try {
+      const data = await pontoVendaService.listarTodos();
+      setPontosVenda(data.sort((a, b) => a.nome.localeCompare(b.nome)));
+    } catch (err) {
+      setError('Erro ao carregar pontos de venda');
+      console.error(err);
+    } finally {
+      setLoadingPontosVenda(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,10 +81,11 @@ export default function CadastroPage() {
     }));
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<PerfilUsuario>) => {
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      perfil: e.target.value as PerfilUsuario
+      [name]: value
     }));
   };
 
@@ -78,13 +100,20 @@ export default function CadastroPage() {
       return;
     }
 
+    if (!formData.id_ponto_venda) {
+      setError('Por favor, selecione um ponto de venda');
+      setLoading(false);
+      return;
+    }
+
     try {
       await authService.cadastrar({
         nome: formData.nome,
         email: formData.email,
         senha: formData.senha,
         perfil: formData.perfil,
-        telefone: formData.telefone
+        telefone: formData.telefone,
+        id_ponto_venda: formData.id_ponto_venda
       });
 
       // Após cadastrar, fazer login automaticamente
@@ -97,7 +126,7 @@ export default function CadastroPage() {
     }
   };
 
-  if (loading) {
+  if (loading || loadingPontosVenda) {
     return (
       <Box
         sx={{
@@ -213,6 +242,23 @@ export default function CadastroPage() {
                   {perfil.label}
                 </MenuItem>
               )))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth required>
+            <InputLabel>Ponto de Venda</InputLabel>
+            <Select
+              name="id_ponto_venda"
+              value={formData.id_ponto_venda}
+              label="Ponto de Venda"
+              onChange={handleSelectChange}
+              error={!!error && !formData.id_ponto_venda}
+            >
+              {pontosVenda.map((ponto) => (
+                <MenuItem key={ponto.id} value={ponto.id}>
+                  {ponto.nome}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 

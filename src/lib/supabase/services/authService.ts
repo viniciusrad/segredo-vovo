@@ -13,6 +13,7 @@ interface CadastroDTO {
   senha: string;
   perfil: PerfilUsuario;
   telefone: string;
+  id_ponto_venda: string;
 }
 
 export const authService = {
@@ -31,7 +32,7 @@ export const authService = {
     return usuario;
   },
 
-  async cadastrar({ nome, email, senha, perfil, telefone }: CadastroDTO): Promise<Usuario> {
+  async cadastrar({ nome, email, senha, perfil, telefone, id_ponto_venda }: CadastroDTO): Promise<Usuario> {
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const { data: usuarioExistente } = await supabase
@@ -51,7 +52,8 @@ export const authService = {
         email: email.toLowerCase(),
         senha: senhaCriptografada,
         perfil,
-        telefone
+        telefone,
+        id_ponto_venda
       }])
       .select()
       .single();
