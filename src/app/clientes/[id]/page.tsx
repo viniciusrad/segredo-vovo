@@ -21,7 +21,7 @@ import {
   TextField,
   Snackbar,
   Divider,
-  Collapse
+  Collapse,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -29,6 +29,8 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { usuarioService, pedidoService } from '@/lib/supabase/services';
@@ -147,6 +149,8 @@ export default function DetalhesClientePage() {
   const estatisticas = calcularEstatisticas();
   const valorTotal = quantidade * valorUnitario;
 
+
+  console.log(cliente);
   return (
     <ProtectedRoute>
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -193,11 +197,65 @@ export default function DetalhesClientePage() {
                   </Box>
                 )}
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" color="primary">
-                    Saldo de Refeições: {cliente?.saldo_refeicoes || 0}
-                  </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AccountBalanceWalletIcon color="action" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography component="span">
+                      Saldo de Refeições:
+                    </Typography>
+                    <Chip
+                      label={`${cliente?.saldo_refeicoes || 0} refeições`}
+                      color={
+                        !cliente?.saldo_refeicoes || cliente?.saldo_refeicoes === 0 ? 'error' :
+                        cliente?.saldo_refeicoes <= 5 ? 'warning' : 'success'
+                      }
+                      size="small"
+                    />
+                  </Box>
                 </Box>
+
+                {/* Informações do Ponto de Venda */}
+                {cliente?.id_ponto_venda && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <StorefrontIcon color="primary" />
+                        <Typography variant="h6">
+                          Ponto de Venda
+                        </Typography>
+                      </Box>
+                      
+                      {cliente?.ponto_venda ? (
+                        <Stack spacing={1} sx={{ pl: 4 }}>
+                          <Typography>
+                            <strong>Nome:</strong> {cliente.ponto_venda.nome}
+                          </Typography>
+                          <Typography>
+                            <strong>Endereço:</strong> {cliente.ponto_venda.endereco}
+                          </Typography>
+                          <Typography>
+                            <strong>Responsável:</strong> {cliente.ponto_venda.responsavel}
+                          </Typography>
+                          <Typography>
+                            <strong>Telefone:</strong> {cliente.ponto_venda.telefone}
+                          </Typography>
+                          <Box>
+                            <Chip
+                              label={cliente.ponto_venda.ativo ? 'Ativo' : 'Inativo'}
+                              color={cliente.ponto_venda.ativo ? 'success' : 'error'}
+                              size="small"
+                            />
+                          </Box>
+                        </Stack>
+                      ) : (
+                        <Alert severity="info" sx={{ mt: 1 }}>
+                          Carregando informações do ponto de venda...
+                        </Alert>
+                      )}
+                    </Box>
+                  </>
+                )}
               </Stack>
             </Paper>
           </Grid>

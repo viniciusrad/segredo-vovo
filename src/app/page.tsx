@@ -239,26 +239,6 @@ export default function Home() {
             >
               <Button
                 variant="contained"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => router.push("/refeicoes/cadastro")}
-                sx={{
-                  background:
-                    "linear-gradient(45deg, #FF9800 30%, #FFB74D 90%)",
-                  boxShadow: "0 3px 5px 2px rgba(255, 152, 0, .3)",
-                  padding: "12px 24px",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                  textTransform: "none",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(45deg, #FF8C00 30%, #FFA726 90%)",
-                  },
-                }}
-              >
-                Nova Refeição
-              </Button>
-              <Button
-                variant="contained"
                 startIcon={<InventoryIcon />}
                 onClick={() => router.push("/refeicoes/gerenciar")}
                 sx={{

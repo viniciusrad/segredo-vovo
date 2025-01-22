@@ -58,6 +58,8 @@ export interface Usuario {
   telefone?: string;
   endereco?: string;
   saldo_refeicoes?: number;
+  id_ponto_venda?: string;
+  ponto_venda?: PontoVenda;
   created_at?: string;
   updated_at?: string;
 }
