@@ -5,7 +5,6 @@ import {
   DialogActions,
   Button,
   Typography,
-  Box,
   CircularProgress
 } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
