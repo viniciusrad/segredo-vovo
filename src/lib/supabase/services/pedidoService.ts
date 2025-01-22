@@ -11,7 +11,8 @@ export const pedidoService = {
           id,
           nome,
           email,
-          telefone
+          telefone,
+          id_ponto_venda
         ),
         refeicoes (
           id,
@@ -34,7 +35,8 @@ export const pedidoService = {
           id,
           nome,
           email,
-          telefone
+          telefone,
+          id_ponto_venda
         ),
         refeicoes (
           id,
@@ -90,7 +92,8 @@ export const pedidoService = {
           id,
           nome,
           email,
-          telefone
+          telefone,
+          id_ponto_venda
         ),
         refeicoes (
           id,

@@ -37,6 +37,7 @@ export interface Pedido {
     email: string;
     telefone?: string;
     endereco?: string;
+    id_ponto_venda?: string;
   };
   refeicoes?: {
     id: string;
