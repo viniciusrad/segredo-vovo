@@ -102,5 +102,20 @@ export const refeicaoService = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  async zerarTodasQuantidades(): Promise<void> {
+    const { error } = await supabase
+      .from('refeicoes')
+      .update({ 
+        quantidade_disponivel: 0,
+        disponivel: false
+      })
+      .gt('id', '00000000-0000-0000-0000-000000000000');
+
+    if (error) {
+      console.error('Erro ao zerar quantidades:', error);
+      throw error;
+    }
   }
 }; 

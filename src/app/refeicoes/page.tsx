@@ -23,10 +23,12 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { refeicaoService } from '@/lib/supabase/services';
 import { Refeicao } from '@/lib/supabase/types';
+import { ConfirmacaoModal } from '@/components/ConfirmacaoModal';
 
 interface RefeicaoComEdicao extends Refeicao {
   editando: boolean;
@@ -41,6 +43,8 @@ export default function GerenciarRefeicoesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
+  const [showConfirmacao, setShowConfirmacao] = useState(false);
+  const [zerandoQuantidades, setZerandoQuantidades] = useState(false);
 
   useEffect(() => {
     carregarRefeicoes();
@@ -143,6 +147,26 @@ export default function GerenciarRefeicoesPage() {
     }));
   };
 
+  const handleZerarQuantidades = async () => {
+    setZerandoQuantidades(true);
+    try {
+      await refeicaoService.zerarTodasQuantidades();
+      await carregarRefeicoes(); // Recarrega as refeições após zerar
+      setFeedback({
+        tipo: 'success',
+        mensagem: 'Todas as quantidades foram zeradas com sucesso!'
+      });
+    } catch (err) {
+      setFeedback({
+        tipo: 'error',
+        mensagem: err instanceof Error ? err.message : 'Erro ao zerar quantidades'
+      });
+    } finally {
+      setZerandoQuantidades(false);
+      setShowConfirmacao(false);
+    }
+  };
+
   if (!usuario || usuario.perfil !== 'admin') {
     return <Typography>Acesso não autorizado</Typography>;
   }
@@ -162,17 +186,31 @@ export default function GerenciarRefeicoesPage() {
           <Typography variant="h4" component="h1">
             Gerenciar Refeições
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddCircleOutlineIcon />}
-            onClick={() => router.push('/refeicoes/cadastro')}
-            sx={{
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              boxShadow: '0 3px 5px 2px rgba(33, 150, 243, .3)',
-            }}
-          >
-            Nova Refeição
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              color="warning"
+              startIcon={<DeleteSweepIcon />}
+              onClick={() => setShowConfirmacao(true)}
+              sx={{
+                background: 'linear-gradient(45deg, #FF9800 30%, #FFB74D 90%)',
+                boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
+              }}
+            >
+              Zerar Refeições
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddCircleOutlineIcon />}
+              onClick={() => router.push('/refeicoes/cadastro')}
+              sx={{
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                boxShadow: '0 3px 5px 2px rgba(33, 150, 243, .3)',
+              }}
+            >
+              Nova Refeição
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -279,6 +317,15 @@ export default function GerenciarRefeicoesPage() {
             {feedback?.mensagem}
           </Alert>
         </Snackbar>
+
+        <ConfirmacaoModal
+          open={showConfirmacao}
+          onClose={() => setShowConfirmacao(false)}
+          onConfirm={handleZerarQuantidades}
+          titulo="Zerar Todas as Refeições"
+          mensagem="Tem certeza que deseja zerar a quantidade de todas as refeições? Esta ação não pode ser desfeita."
+          loading={zerandoQuantidades}
+        />
       </Container>
     </ProtectedRoute>
   );
