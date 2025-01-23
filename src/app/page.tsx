@@ -18,8 +18,8 @@ import {
   Chip,
   Alert,
 } from "@mui/material";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import InventoryIcon from "@mui/icons-material/Inventory";
+// import RestaurantIcon from "@mui/icons-material/Restaurant";
+// import InventoryIcon from "@mui/icons-material/Inventory";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import { refeicaoService, pedidoService } from "@/lib/supabase/services";

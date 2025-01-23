@@ -5,12 +5,6 @@ import {
   Container,
   Paper,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Box,
   CircularProgress,
@@ -21,6 +15,10 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -85,10 +83,7 @@ export default function PedidosPage() {
       const hoje = new Date().toISOString().split("T")[0];
       const pedidosHoje = pedidosData.filter(
         (pedido) => pedido.data_pedido.split("T")[0] === hoje
-      ).map(pedido => ({
-        ...pedido,
-        porcoes: typeof pedido.porcoes === 'string' ? pedido.porcoes.split(',') : pedido.porcoes,
-      }));
+      );
 
       // Adiciona o ponto de venda "Todos" e ordena os pontos de venda por nome
       const pontosVendaOrdenados = [
@@ -286,129 +281,145 @@ export default function PedidosPage() {
             return (
               <TabPanel key={ponto.id} value={tabAtual} index={index}>
                 {pedidosFiltrados.length > 0 ? (
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Cliente</TableCell>
-                          <TableCell>Refeição</TableCell>
-                          <TableCell align="center">Quantidade</TableCell>
-                          <TableCell align="center">Valor Total</TableCell>
-                          <TableCell align="center">Status</TableCell>
-                          <TableCell align="center">Guarnições</TableCell>
-                          <TableCell align="center">Ações</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {pedidosFiltrados.map((pedido) => {
-                          console.log(pedido);
-                          return (
-                            <TableRow key={pedido.id}>
-                              <TableCell>
-                                {pedido.usuarios?.nome ||
-                                  "Cliente não encontrado"}
-                              </TableCell>
-                              <TableCell>
-                                {pedido.refeicoes?.nome ||
-                                  "Refeição não encontrada"}
-                              </TableCell>
-                              <TableCell align="center">
-                                {pedido.quantidade}
-                              </TableCell>
-                              <TableCell align="center">
-                                R$ {pedido.valor_total.toFixed(2)}
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip
-                                  label={pedido.status}
-                                  color={getStatusColor(pedido.status)}
-                                  size="small"
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Stack
-                                  direction="row"
-                                  spacing={0.5}
-                                  flexWrap="wrap"
-                                  justifyContent="center"
-                                >
-                                  {pedido.porcoes?.map((porcao, idx) => (
-                                    <Chip
-                                      key={idx}
-                                      label={porcao}
-                                      size="small"
-                                      variant="outlined"
-                                      sx={{
-                                        borderColor: "grey.300",
-                                        color: "grey.700",
-                                        fontSize: "0.75rem",
-                                        my: 0.25,
-                                      }}
-                                    />
-                                  ))}
+                  <Box sx={{ mt: 2 }}>
+                    <Grid container spacing={3}>
+                      {pedidosFiltrados.map((pedido) => (
+                        <Grid item xs={12} sm={6} md={4} key={pedido.id}>
+                          <Card 
+                            elevation={3}
+                            sx={{
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              position: 'relative',
+                              transition: 'transform 0.2s, box-shadow 0.2s',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                              }
+                            }}
+                          >
+                            <CardContent sx={{ flexGrow: 1 }}>
+                              <Stack spacing={2}>
+                                {/* Cabeçalho do Card */}
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between', 
+                                  alignItems: 'flex-start',
+                                  gap: 1
+                                }}>
+                                  <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+                                    {pedido.refeicoes?.nome || "Refeição não encontrada"}
+                                  </Typography>
+                                  <Chip
+                                    label={pedido.status}
+                                    color={getStatusColor(pedido.status)}
+                                    size="small"
+                                  />
+                                </Box>
+
+                                {/* Informações do Cliente */}
+                                <Box>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Cliente
+                                  </Typography>
+                                  <Typography variant="body1">
+                                    {pedido.usuarios?.nome || "Cliente não encontrado"}
+                                  </Typography>
+                                </Box>
+
+                                {/* Informações do Pedido */}
+                                <Stack direction="row" spacing={2} justifyContent="space-between">
+                                  <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                      Quantidade
+                                    </Typography>
+                                    <Typography variant="body1">
+                                      {pedido.quantidade} un
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                      Valor Total
+                                    </Typography>
+                                    <Typography variant="body1" color="primary.main" fontWeight="bold">
+                                      R$ {pedido.valor_total.toFixed(2)}
+                                    </Typography>
+                                  </Box>
                                 </Stack>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  justifyContent="center"
-                                >
+
+                                {/* Guarnições */}
+                                <Box>
+                                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Guarnições
+                                  </Typography>
+                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                                    {pedido.porcoes?.map((porcao, idx) => (
+                                      <Chip
+                                        key={idx}
+                                        label={porcao}
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{
+                                          borderColor: 'grey.300',
+                                          color: 'grey.700',
+                                          fontSize: '0.75rem'
+                                        }}
+                                      />
+                                    ))}
+                                  </Stack>
+                                </Box>
+                              </Stack>
+                            </CardContent>
+
+                            {/* Ações */}
+                            <CardActions sx={{ 
+                              justifyContent: 'flex-end', 
+                              p: 2,
+                              pt: 0,
+                              gap: 1 
+                            }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => navegarParaDetalhesPedido(pedido.id)}
+                                color="primary"
+                              >
+                                <VisibilityIcon />
+                              </IconButton>
+                              {pedido.status === 'separado' && (
+                                <>
                                   <IconButton
                                     size="small"
-                                    onClick={() =>
-                                      navegarParaDetalhesPedido(pedido.id)
-                                    }
-                                    color="primary"
+                                    onClick={() => handleAtualizarStatus(pedido.id, 'entregue')}
+                                    color="success"
                                   >
-                                    <VisibilityIcon />
+                                    <CheckCircleIcon />
                                   </IconButton>
-                                  {pedido.status === "separado" && (
-                                    <>
-                                      <IconButton
-                                        size="small"
-                                        onClick={() =>
-                                          handleAtualizarStatus(
-                                            pedido.id,
-                                            "entregue"
-                                          )
-                                        }
-                                        color="success"
-                                      >
-                                        <CheckCircleIcon />
-                                      </IconButton>
-                                      <IconButton
-                                        size="small"
-                                        onClick={() =>
-                                          handleAtualizarStatus(
-                                            pedido.id,
-                                            "cancelado"
-                                          )
-                                        }
-                                        color="error"
-                                      >
-                                        <CancelIcon />
-                                      </IconButton>
-                                    </>
-                                  )}
-                                  {pedido.status === "solicitado" && (
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => confirmarPedido(pedido.id)}
-                                      disabled={!!atualizando}
-                                      color="info"
-                                    >
-                                      <CheckCircleOutlineIcon />
-                                    </IconButton>
-                                  )}
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleAtualizarStatus(pedido.id, 'cancelado')}
+                                    color="error"
+                                  >
+                                    <CancelIcon />
+                                  </IconButton>
+                                </>
+                              )}
+                              {pedido.status === 'solicitado' && (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => confirmarPedido(pedido.id)}
+                                  disabled={!!atualizando}
+                                  color="info"
+                                >
+                                  <CheckCircleOutlineIcon />
+                                </IconButton>
+                              )}
+                            </CardActions>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
                 ) : (
                   <Alert severity="info" sx={{ mt: 2 }}>
                     Nenhum pedido encontrado para {ponto.nome}.

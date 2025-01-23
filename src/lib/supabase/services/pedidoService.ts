@@ -24,7 +24,18 @@ export const pedidoService = {
       .order('data_pedido', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Garante que as guarnições sejam sempre um array
+    const pedidosProcessados = data?.map(pedido => ({
+      ...pedido,
+      porcoes: Array.isArray(pedido.porcoes) 
+        ? pedido.porcoes 
+        : typeof pedido.porcoes === 'string'
+          ? pedido.porcoes.split(',')
+          : []
+    })) || [];
+
+    return pedidosProcessados;
   },
 
   async buscarPorId(id: string): Promise<Pedido | null> {
