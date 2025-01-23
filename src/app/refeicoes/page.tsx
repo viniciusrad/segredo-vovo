@@ -184,7 +184,13 @@ export default function GerenciarRefeicoesPage() {
 
   return (
     <ProtectedRoute>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          py: 4,
+          px: { xs: 2, sm: 3, md: 4 }
+        }}
+      >
         <Stack spacing={3}>
           {/* Cabeçalho e Botões */}
           <Stack 
@@ -233,128 +239,152 @@ export default function GerenciarRefeicoesPage() {
 
           {error && <Alert severity="error">{error}</Alert>}
 
-          <Grid container spacing={3}>
-            {refeicoes.map((refeicao) => (
-              <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-                <Card 
-                  elevation={3}
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                    }
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Stack spacing={2}>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'flex-start',
-                        flexWrap: 'wrap',
-                        gap: 1
-                      }}>
-                        <Typography variant="h6" component="h2">
-                          {refeicao.nome}
-                        </Typography>
-                        <Chip
-                          label={refeicao.quantidade_disponivel > 0 ? "Disponível" : "Indisponível"}
-                          color={refeicao.quantidade_disponivel > 0 ? "success" : "error"}
-                          size="small"
-                        />
-                      </Box>
-
-                      <Typography variant="body2" color="text.secondary">
-                        {refeicao.descricao}
-                      </Typography>
-
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 2,
-                        flexWrap: 'wrap'
-                      }}>
-                        <Typography variant="h6" color="primary">
-                          R$ {refeicao.preco.toFixed(2)}
-                        </Typography>
-                        {refeicao.editando ? (
-                          <Box sx={{ 
-                            display: 'flex', 
-                            gap: 1,
-                            flexGrow: 1,
-                            flexWrap: 'wrap'
-                          }}>
-                            <TextField
-                              type="number"
-                              size="small"
-                              value={refeicao.quantidadeTemp}
-                              onChange={(e) => handleQuantidadeChange(refeicao.id, parseInt(e.target.value) || 0)}
-                              InputProps={{
-                                endAdornment: <InputAdornment position="end">un</InputAdornment>,
-                              }}
-                              sx={{ minWidth: '100px' }}
-                            />
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              size="small"
-                              onClick={() => handleSalvarQuantidade(refeicao.id)}
-                              disabled={refeicao.salvando}
-                              startIcon={<SaveIcon />}
-                              sx={{ flexGrow: { xs: 1, sm: 0 } }}
-                            >
-                              Salvar
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            {refeicao.quantidade_disponivel} unidades disponíveis
+          <Box sx={{ 
+            width: '100%', 
+            overflow: 'hidden',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <Grid 
+              container 
+              spacing={3} 
+              sx={{ 
+                margin: 0,
+                width: '100%',
+                maxWidth: 'lg',
+                justifyContent: 'center',
+                '& > .MuiGrid-item': {
+                  paddingTop: 3,
+                  paddingBottom: 3,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }
+              }}
+            >
+              {refeicoes.map((refeicao) => (
+                <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
+                  <Card 
+                    elevation={3}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      width: '100%',
+                      maxWidth: { xs: '100%', sm: '400px' },
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Stack spacing={2}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'flex-start',
+                          flexWrap: 'wrap',
+                          gap: 1
+                        }}>
+                          <Typography variant="h6" component="h2">
+                            {refeicao.nome}
                           </Typography>
-                        )}
-                      </Box>
-                    </Stack>
-                  </CardContent>
+                          <Chip
+                            label={refeicao.quantidade_disponivel > 0 ? "Disponível" : "Indisponível"}
+                            color={refeicao.quantidade_disponivel > 0 ? "success" : "error"}
+                            size="small"
+                          />
+                        </Box>
 
-                  <CardActions sx={{ 
-                    justifyContent: 'flex-end',
-                    p: 2,
-                    gap: 1,
-                    flexWrap: 'wrap'
-                  }}>
-                    <Button
-                      size="small"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
-                      sx={{ flexGrow: { xs: 1, sm: 0 } }}
-                    >
-                      Ver Detalhes
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<EditIcon />}
-                      onClick={() => router.push(`/refeicoes/${refeicao.id}/editar`)}
-                      sx={{ flexGrow: { xs: 1, sm: 0 } }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="small"
-                      color={refeicao.editando ? "error" : "primary"}
-                      onClick={() => toggleEdicao(refeicao.id)}
-                      sx={{ flexGrow: { xs: 1, sm: 0 } }}
-                    >
-                      {refeicao.editando ? "Cancelar" : "Ajustar Quantidade"}
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                        <Typography variant="body2" color="text.secondary">
+                          {refeicao.descricao}
+                        </Typography>
+
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 2,
+                          flexWrap: 'wrap'
+                        }}>
+                          <Typography variant="h6" color="primary">
+                            R$ {refeicao.preco.toFixed(2)}
+                          </Typography>
+                          {refeicao.editando ? (
+                            <Box sx={{ 
+                              display: 'flex', 
+                              gap: 1,
+                              flexGrow: 1,
+                              flexWrap: 'wrap'
+                            }}>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={refeicao.quantidadeTemp}
+                                onChange={(e) => handleQuantidadeChange(refeicao.id, parseInt(e.target.value) || 0)}
+                                InputProps={{
+                                  endAdornment: <InputAdornment position="end">un</InputAdornment>,
+                                }}
+                                sx={{ minWidth: '100px' }}
+                              />
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                size="small"
+                                onClick={() => handleSalvarQuantidade(refeicao.id)}
+                                disabled={refeicao.salvando}
+                                startIcon={<SaveIcon />}
+                                sx={{ flexGrow: { xs: 1, sm: 0 } }}
+                              >
+                                Salvar
+                              </Button>
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              {refeicao.quantidade_disponivel} unidades disponíveis
+                            </Typography>
+                          )}
+                        </Box>
+                      </Stack>
+                    </CardContent>
+
+                    <CardActions sx={{ 
+                      justifyContent: 'flex-end',
+                      p: 2,
+                      gap: 1,
+                      flexWrap: 'wrap'
+                    }}>
+                      <Button
+                        size="small"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
+                        sx={{ flexGrow: { xs: 1, sm: 0 } }}
+                      >
+                        Ver Detalhes
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<EditIcon />}
+                        onClick={() => router.push(`/refeicoes/${refeicao.id}/editar`)}
+                        sx={{ flexGrow: { xs: 1, sm: 0 } }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        size="small"
+                        color={refeicao.editando ? "error" : "primary"}
+                        onClick={() => toggleEdicao(refeicao.id)}
+                        sx={{ flexGrow: { xs: 1, sm: 0 } }}
+                      >
+                        {refeicao.editando ? "Cancelar" : "Ajustar Quantidade"}
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
         </Stack>
 
         <ConfirmacaoModal

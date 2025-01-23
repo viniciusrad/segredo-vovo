@@ -1,6 +1,7 @@
 import { supabase } from '../config';
 import { Usuario, PerfilUsuario } from '../types';
 import * as bcrypt from 'bcryptjs';
+import Cookies from 'js-cookie';
 
 interface LoginDTO {
   email: string;
@@ -28,6 +29,16 @@ export const authService = {
     
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
     if (!senhaCorreta) throw new Error('Senha incorreta');
+
+    // Remove a senha antes de armazenar no cookie
+    const { senha: _, ...usuarioSemSenha } = usuario;
+    
+    // Armazena a sessão em um cookie seguro
+    Cookies.set('session', JSON.stringify(usuarioSemSenha), {
+      expires: 7, // expira em 7 dias
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
 
     return usuario;
   },
@@ -63,7 +74,7 @@ export const authService = {
   },
 
   async getUsuarioLogado(): Promise<Usuario | null> {
-    const session = localStorage.getItem('session');
+    const session = Cookies.get('session');
     if (!session) return null;
 
     try {
@@ -75,6 +86,6 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    localStorage.removeItem('session');
+    Cookies.remove('session');
   }
 }; 
