@@ -31,7 +31,8 @@ export const authService = {
     if (!senhaCorreta) throw new Error('Senha incorreta');
 
     // Remove a senha antes de armazenar no cookie
-    const { senha: _, ...usuarioSemSenha } = usuario;
+    const usuarioSemSenha = { ...usuario };
+    delete usuarioSemSenha.senha;
     
     // Armazena a sessão em um cookie seguro
     Cookies.set('session', JSON.stringify(usuarioSemSenha), {
@@ -74,7 +75,7 @@ export const authService = {
   },
 
   async getUsuarioLogado(): Promise<Usuario | null> {
-    const session = Cookies.get('session');
+    const session = localStorage.getItem('session');
     if (!session) return null;
 
     try {
@@ -86,6 +87,6 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    Cookies.remove('session');
+    localStorage.removeItem('session');
   }
 }; 

@@ -362,7 +362,7 @@ const ReservaRefeicaoPage = () => {
                 : 'O limite máximo é de 5 guarnições por pedido.'}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              A guarnição "{ultimaGuarnicao}" não foi adicionada.
+              A guarnição &quot;{ultimaGuarnicao}&quot; não foi adicionada.
             </Typography>
           </DialogContent>
           <DialogActions>
