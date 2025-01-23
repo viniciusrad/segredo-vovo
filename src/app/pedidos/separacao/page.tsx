@@ -20,14 +20,12 @@ import {
   Button,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useRouter } from 'next/navigation';
 import { Pedido } from '@/lib/supabase/types';
 import { pedidoService } from '@/lib/supabase/services';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useLoading } from '@/contexts/LoadingContext';
 
 export default function SeparacaoPedidosPage() {
-  const router = useRouter();
   const { startLoading, stopLoading } = useLoading();
   const [pedidos, setPedidos] = useState<(Pedido & { itensVerificados: string[] })[]>([]);
   const [loading, setLoading] = useState(true);
