@@ -7,6 +7,7 @@ export const pedidoService = {
       .from('pedidos')
       .select(`
         *,
+        porcoes,
         usuarios:cliente_id (
           id,
           nome,
