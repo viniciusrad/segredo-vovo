@@ -38,6 +38,14 @@ export interface Pedido {
     telefone?: string;
     endereco?: string;
     id_ponto_venda?: string;
+    ponto_venda?: {
+      id: string;
+      nome: string;
+      endereco: string;
+      responsavel: string;
+      telefone: string;
+      ativo: boolean;
+    };
   };
   refeicoes?: {
     id: string;
@@ -47,7 +55,7 @@ export interface Pedido {
   };
 }
 
-export type PerfilUsuario = 'admin' | 'atendente' | 'cliente';
+export type PerfilUsuario = 'admin' | 'atendente' | 'cliente' | 'funcionario';
 
 export interface Usuario {
   id: string;

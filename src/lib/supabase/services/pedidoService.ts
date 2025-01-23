@@ -3,7 +3,20 @@ import { Pedido, Refeicao, StatusPedido } from '../types';
 
 export const pedidoService = {
   async listarTodos(): Promise<Pedido[]> {
-    const { data, error } = await supabase
+    // Primeiro, buscar todos os pontos de venda
+    const { data: pontosVenda, error: pontosVendaError } = await supabase
+      .from('pontos_venda')
+      .select('*');
+
+    if (pontosVendaError) throw pontosVendaError;
+
+    // Criar um mapa de pontos de venda para acesso rápido
+    const pontosVendaMap = new Map(
+      pontosVenda.map(pv => [pv.id, pv])
+    );
+
+    // Buscar os pedidos com dados do usuário
+    const { data: pedidos, error: pedidosError } = await supabase
       .from('pedidos')
       .select(`
         *,
@@ -23,17 +36,23 @@ export const pedidoService = {
       `)
       .order('data_pedido', { ascending: false });
 
-    if (error) throw error;
+    if (pedidosError) throw pedidosError;
     
-    // Garante que as guarnições sejam sempre um array
-    const pedidosProcessados = data?.map(pedido => ({
+    // Processa os dados para incluir o ponto de venda e garantir o formato correto das porções
+    const pedidosProcessados = (pedidos || []).map(pedido => ({
       ...pedido,
-      porcoes: Array.isArray(pedido.porcoes) 
-        ? pedido.porcoes 
+      usuarios: pedido.usuarios ? {
+        ...pedido.usuarios,
+        ponto_venda: pedido.usuarios.id_ponto_venda 
+          ? pontosVendaMap.get(pedido.usuarios.id_ponto_venda)
+          : undefined
+      } : undefined,
+      porcoes: Array.isArray(pedido.porcoes)
+        ? pedido.porcoes
         : typeof pedido.porcoes === 'string'
           ? pedido.porcoes.split(',')
           : []
-    })) || [];
+    }));
 
     return pedidosProcessados;
   },
