@@ -15,6 +15,10 @@ import {
   TextField,
   Snackbar,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { Refeicao } from '@/lib/supabase/types';
@@ -33,8 +37,10 @@ const ReservaRefeicaoPage = () => {
   const [loading, setLoading] = useState(true);
   const [processando, setProcessando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error', mensagem: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error' | 'warning', mensagem: string } | null>(null);
   const [guarnicoesPersonalizadas, setGuarnicoesPersonalizadas] = useState<string[]>([]);
+  const [showLimiteDialog, setShowLimiteDialog] = useState(false);
+  const [ultimaGuarnicao, setUltimaGuarnicao] = useState<string>('');
 
   useEffect(() => {
     carregarRefeicao();
@@ -46,14 +52,32 @@ const ReservaRefeicaoPage = () => {
     }
   }, [refeicao]);
 
+  const getLimiteGuarnicoes = () => {
+    return refeicao?.ingredientes ? refeicao.ingredientes.length : 5;
+  };
+
   const handleRemoverGuarnicao = (guarnicao: string) => {
     setGuarnicoesPersonalizadas(prev => prev.filter(g => g !== guarnicao));
   };
 
   const handleAdicionarGuarnicao = (guarnicao: string) => {
+    const limiteGuarnicoes = getLimiteGuarnicoes();
+    
+    if (guarnicoesPersonalizadas.length >= limiteGuarnicoes) {
+      setUltimaGuarnicao(guarnicao);
+      setShowLimiteDialog(true);
+      return;
+    }
+
     if (!guarnicoesPersonalizadas.includes(guarnicao)) {
       setGuarnicoesPersonalizadas(prev => [...prev, guarnicao]);
     }
+  };
+
+  const handleConfirmarLimite = () => {
+    setShowLimiteDialog(false);
+    // Não adiciona a última guarnição
+    setUltimaGuarnicao('');
   };
 
   const getGuarnicoesDisponiveis = () => {
@@ -79,6 +103,23 @@ const ReservaRefeicaoPage = () => {
 
   const handleReservar = async () => {
     if (!refeicao || !usuario) return;
+
+    if (guarnicoesPersonalizadas.length === 0) {
+      setFeedback({
+        tipo: 'warning',
+        mensagem: 'Por favor, selecione pelo menos uma guarnição antes de continuar.'
+      });
+      return;
+    }
+
+    const limiteGuarnicoes = getLimiteGuarnicoes();
+    if (guarnicoesPersonalizadas.length > limiteGuarnicoes) {
+      setFeedback({
+        tipo: 'warning',
+        mensagem: `Você excedeu o limite de ${limiteGuarnicoes} guarnições. Por favor, remova algumas antes de continuar.`
+      });
+      return;
+    }
 
     setProcessando(true);
     setError(null);
@@ -192,10 +233,20 @@ const ReservaRefeicaoPage = () => {
                   <Chip
                     key={index}
                     label={guarnicao}
-                    color="secondary"
                     variant="outlined"
                     onClick={() => handleAdicionarGuarnicao(guarnicao)}
                     icon={<AddCircleOutlineIcon />}
+                    sx={{
+                      borderColor: 'grey.300',
+                      color: 'grey.700',
+                      '& .MuiChip-icon': {
+                        color: 'grey.500'
+                      },
+                      '&:hover': {
+                        borderColor: 'grey.400',
+                        backgroundColor: 'grey.50'
+                      }
+                    }}
                   />
                 ))}
               </Box>
@@ -294,6 +345,32 @@ const ReservaRefeicaoPage = () => {
             )}
           </Stack>
         </Paper>
+
+        <Dialog
+          open={showLimiteDialog}
+          onClose={handleConfirmarLimite}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ bgcolor: 'warning.main', color: 'warning.contrastText' }}>
+            Limite de Guarnições Excedido
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <Typography variant="body1" gutterBottom>
+              {refeicao?.ingredientes 
+                ? `Esta refeição permite apenas ${refeicao.ingredientes.length} guarnições conforme cadastrado.`
+                : 'O limite máximo é de 5 guarnições por pedido.'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              A guarnição "{ultimaGuarnicao}" não foi adicionada.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleConfirmarLimite} variant="contained" color="primary">
+              Entendi
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Snackbar
           open={!!feedback}
