@@ -18,6 +18,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { PerfilUsuario } from '@/lib/supabase/types';
 
 const pages = [
   { title: 'Início', path: '/' },
@@ -30,6 +31,34 @@ const adminPages = [
   { title: 'Usuários', path: '/usuarios' },
   { title: 'Pontos de Venda', path: '/pontos-venda' }
 ];
+
+const atendentePages = [
+  { title: 'Pedidos', path: '/pedidos' }
+];
+
+const clientePages = [
+  { title: 'Refeições', path: '/refeicoes' }
+];
+
+const funcionarioPages = [
+  { title: 'Tarefas', path: '/tarefas' }
+];
+
+// Função para determinar as páginas disponíveis com base no perfil
+const getAvailablePages = (perfil: PerfilUsuario) => {
+  switch (perfil) {
+    case 'admin':
+      return [...pages, ...adminPages];
+    case 'atendente':
+      return [...pages, ...atendentePages];
+    case 'cliente':
+      return [...pages, ...clientePages];
+    case 'funcionario':
+      return [...pages, ...funcionarioPages];
+    default:
+      return pages;
+  }
+};
 
 export function Header() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -64,9 +93,7 @@ export function Header() {
     await logout();
   };
 
-  const availablePages = usuario?.perfil === 'admin' 
-    ? [...pages, ...adminPages]
-    : pages;
+  const availablePages = usuario ? getAvailablePages(usuario.perfil) : pages;
 
   return (
     <AppBar 
