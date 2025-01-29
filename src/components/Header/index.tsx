@@ -21,13 +21,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PerfilUsuario } from '@/lib/supabase/types';
 
 const pages = [
-  { title: 'Início', path: '/' },
-  { title: 'Refeições', path: '/refeicoes' },
-  { title: 'Clientes', path: '/clientes' },
-  { title: 'Pedidos', path: '/pedidos' }
+  { title: 'Início', path: '/' }
 ];
 
 const adminPages = [
+  { title: 'Refeições', path: '/refeicoes' },
+  { title: 'Clientes', path: '/clientes' },
+  { title: 'Pedidos', path: '/pedidos' },
   { title: 'Usuários', path: '/usuarios' },
   { title: 'Pontos de Venda', path: '/pontos-venda' }
 ];
