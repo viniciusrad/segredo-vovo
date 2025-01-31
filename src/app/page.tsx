@@ -248,94 +248,96 @@ export default function Home() {
     });
   };
 
-  const renderCardapio = (pontoVendaId: string) => {
-    const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVendaId);
+  // const renderCardapio = (pontoVendaId: string) => {
+  //   const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVendaId);
 
-    return (
-      <>
-        {refeicoesDoPonto.length === 0 ? (
-          <Alert severity="info">
-            Não há refeições disponíveis no momento.
-          </Alert>
-        ) : (
-          <Grid container spacing={3}>
-            {refeicoesDoPonto.map((refeicao) => (
-              <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-                <Card
-                  elevation={3}
-                  onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                    cursor: "pointer",
-                    "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-                    },
-                    background:
-                      "linear-gradient(to bottom right, #ffffff, #f8f9fa)",
-                  }}
-                >
-                  {refeicao.imagem_url && (
-                    <CardMedia
-                      component="div"
-                      sx={{ position: 'relative', height: 200 }}
-                    >
-                      <Image
-                        src={refeicao.imagem_url}
-                        alt={refeicao.nome}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </CardMedia>
-                  )}
-                  <CardContent>
-                    <Typography variant="h6" component="h3" gutterBottom>
-                      {refeicao.nome}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {refeicao.descricao}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography variant="h6" color="primary">
-                        {formatarPreco(refeicao.preco)}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: 1,
-                        }}
-                      >
-                        <Chip
-                          label={`${getQuantidadeDisponivel(refeicao)} disponíveis`}
-                          color={getQuantidadeDisponivel(refeicao) > 0 ? "success" : "error"}
-                          size="small"
-                        />
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </>
-    );
-  };
+  //   return (
+  //     <>
+
+  //     <span>{loading&&"carregando"}</span>
+  //       {refeicoesDoPonto.length === 0 ? (
+  //         <Alert severity="info">
+  //           Não há refeições disponíveis no momento.
+  //         </Alert>
+  //       ) : (
+  //         <Grid container spacing={3}>
+  //           {refeicoesDoPonto.map((refeicao) => (
+  //             <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
+  //               <Card
+  //                 elevation={3}
+  //                 onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
+  //                 sx={{
+  //                   height: "100%",
+  //                   display: "flex",
+  //                   flexDirection: "column",
+  //                   transition: "transform 0.2s, box-shadow 0.2s",
+  //                   cursor: "pointer",
+  //                   "&:hover": {
+  //                     transform: "translateY(-4px)",
+  //                     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+  //                   },
+  //                   background:
+  //                     "linear-gradient(to bottom right, #ffffff, #f8f9fa)",
+  //                 }}
+  //               >
+  //                 {refeicao.imagem_url && (
+  //                   <CardMedia
+  //                     component="div"
+  //                     sx={{ position: 'relative', height: 200 }}
+  //                   >
+  //                     <Image
+  //                       src={refeicao.imagem_url}
+  //                       alt={refeicao.nome}
+  //                       fill
+  //                       style={{ objectFit: 'cover' }}
+  //                     />
+  //                   </CardMedia>
+  //                 )}
+  //                 <CardContent>
+  //                   <Typography variant="h6" component="h3" gutterBottom>
+  //                     {refeicao.nome}
+  //                   </Typography>
+  //                   <Typography
+  //                     variant="body2"
+  //                     color="text.secondary"
+  //                     sx={{ mb: 2 }}
+  //                   >
+  //                     {refeicao.descricao}
+  //                   </Typography>
+  //                   <Box
+  //                     sx={{
+  //                       display: "flex",
+  //                       justifyContent: "space-between",
+  //                       alignItems: "center",
+  //                     }}
+  //                   >
+  //                     <Typography variant="h6" color="primary">
+  //                       {formatarPreco(refeicao.preco)}
+  //                     </Typography>
+  //                     <Box
+  //                       sx={{
+  //                         display: "flex",
+  //                         flexDirection: "column",
+  //                         alignItems: "flex-end",
+  //                         gap: 1,
+  //                       }}
+  //                     >
+  //                       <Chip
+  //                         label={`${getQuantidadeDisponivel(refeicao)} disponíveis`}
+  //                         color={getQuantidadeDisponivel(refeicao) > 0 ? "success" : "error"}
+  //                         size="small"
+  //                       />
+  //                     </Box>
+  //                   </Box>
+  //                 </CardContent>
+  //               </Card>
+  //             </Grid>
+  //           ))}
+  //         </Grid>
+  //       )}
+  //     </>
+  //   );
+  // };
 
   if (!usuario) {
     return (
