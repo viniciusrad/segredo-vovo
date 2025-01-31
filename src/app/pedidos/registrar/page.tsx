@@ -195,103 +195,127 @@ export default function RegistrarPedidoPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'text.primary' }}>
         Fazer Pedido
       </Typography>
 
-      <Box sx={{ width: '100%', mb: 4 }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={tabAtual}
-            onChange={(_, newValue) => setTabAtual(newValue)}
-            variant={isMobile ? "scrollable" : "fullWidth"}
-            scrollButtons={isMobile ? "auto" : false}
-            aria-label="Pontos de Venda"
-          >
-            {pontosVenda.map((pv, index) => (
-              <Tab
-                key={pv.id}
-                label={pv.nome}
-                id={`ponto-venda-tab-${index}`}
-                aria-controls={`ponto-venda-tabpanel-${index}`}
-              />
-            ))}
-          </Tabs>
-        </Box>
+      <Card sx={{ backgroundColor: 'white', boxShadow: 2 }}>
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+            <Tabs
+              value={tabAtual}
+              onChange={(_, newValue) => setTabAtual(newValue)}
+              variant={isMobile ? "scrollable" : "fullWidth"}
+              scrollButtons={isMobile ? "auto" : false}
+              aria-label="Pontos de Venda"
+              sx={{
+                '& .MuiTab-root': {
+                  color: 'text.secondary',
+                  '&.Mui-selected': {
+                    color: 'primary.main',
+                    fontWeight: 'bold'
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: 'primary.main'
+                }
+              }}
+            >
+              {pontosVenda.map((pv, index) => (
+                <Tab
+                  key={pv.id}
+                  label={pv.nome}
+                  id={`ponto-venda-tab-${index}`}
+                  aria-controls={`ponto-venda-tabpanel-${index}`}
+                />
+              ))}
+            </Tabs>
+          </Box>
 
-        {pontosVenda.map((pontoVenda, index) => {
-          const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVenda.id);
+          {pontosVenda.map((pontoVenda, index) => {
+            const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVenda.id);
 
-          return (
-            <TabPanel key={pontoVenda.id} value={tabAtual} index={index}>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Cardápio - {pontoVenda.nome}
-              </Typography>
-              {refeicoesDoPonto.length === 0 ? (
-                <Alert severity="info">
-                  Não há refeições disponíveis neste ponto de venda.
-                </Alert>
-              ) : (
-                <Grid container spacing={3}>
-                  {refeicoesDoPonto.map((refeicao) => (
-                    <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                        {refeicao.imagem_url && (
-                          <CardMedia
-                            component="div"
-                            sx={{ position: 'relative', height: 200 }}
-                          >
-                            <Image
-                              src={refeicao.imagem_url}
-                              alt={refeicao.nome}
-                              fill
-                              style={{ objectFit: 'cover' }}
-                            />
-                          </CardMedia>
-                        )}
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6" gutterBottom>
-                            {refeicao.nome}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" paragraph>
-                            {refeicao.descricao}
-                          </Typography>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6" color="primary">
-                              {formatarPreco(refeicao.preco)}
+            return (
+              <TabPanel key={pontoVenda.id} value={tabAtual} index={index}>
+                <Typography variant="h5" component="h2" gutterBottom sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                  Cardápio - {pontoVenda.nome}
+                </Typography>
+                {refeicoesDoPonto.length === 0 ? (
+                  <Alert severity="info">
+                    Não há refeições disponíveis neste ponto de venda.
+                  </Alert>
+                ) : (
+                  <Grid container spacing={3}>
+                    {refeicoesDoPonto.map((refeicao) => (
+                      <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
+                        <Card sx={{ 
+                          height: '100%', 
+                          display: 'flex', 
+                          flexDirection: 'column',
+                          backgroundColor: 'white',
+                          boxShadow: 1
+                        }}>
+                          {refeicao.imagem_url && (
+                            <CardMedia
+                              component="div"
+                              sx={{ position: 'relative', height: 200 }}
+                            >
+                              <Image
+                                src={refeicao.imagem_url}
+                                alt={refeicao.nome}
+                                fill
+                                style={{ objectFit: 'cover' }}
+                              />
+                            </CardMedia>
+                          )}
+                          <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', fontWeight: 'medium' }}>
+                              {refeicao.nome}
                             </Typography>
-                            <Chip
-                              label={`${getQuantidadeDisponivel(refeicao, pontoVenda.id)} disponíveis`}
-                              color={getQuantidadeDisponivel(refeicao, pontoVenda.id) > 0 ? 'success' : 'error'}
-                            />
-                          </Box>
-                          <Box sx={{ mt: 2 }}>
-                            <QuantidadeSelector
-                              quantidade={quantidades[refeicao.id] || 1}
-                              onChange={(novaQuantidade) => handleQuantidadeChange(refeicao.id, novaQuantidade)}
-                              max={getQuantidadeDisponivel(refeicao, pontoVenda.id)}
-                            />
-                          </Box>
-                        </CardContent>
-                        <CardActions>
-                          <Button
-                            fullWidth
-                            variant="contained"
-                            onClick={() => handleReservar(refeicao, pontoVenda.id)}
-                            disabled={getQuantidadeDisponivel(refeicao, pontoVenda.id) === 0}
-                          >
-                            Reservar
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </TabPanel>
-          );
-        })}
-      </Box>
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }} paragraph>
+                              {refeicao.descricao}
+                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                              <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                                {formatarPreco(refeicao.preco)}
+                              </Typography>
+                              <Chip
+                                label={`${getQuantidadeDisponivel(refeicao, pontoVenda.id)} disponíveis`}
+                                color={getQuantidadeDisponivel(refeicao, pontoVenda.id) > 0 ? 'success' : 'error'}
+                              />
+                            </Box>
+                            <Box sx={{ mt: 2 }}>
+                              <QuantidadeSelector
+                                quantidade={quantidades[refeicao.id] || 1}
+                                onChange={(novaQuantidade) => handleQuantidadeChange(refeicao.id, novaQuantidade)}
+                                max={getQuantidadeDisponivel(refeicao, pontoVenda.id)}
+                              />
+                            </Box>
+                          </CardContent>
+                          <CardActions sx={{ p: 2 }}>
+                            <Button
+                              fullWidth
+                              variant="contained"
+                              onClick={() => handleReservar(refeicao, pontoVenda.id)}
+                              disabled={getQuantidadeDisponivel(refeicao, pontoVenda.id) === 0}
+                              sx={{ 
+                                fontWeight: 'bold',
+                                py: 1
+                              }}
+                            >
+                              Reservar
+                            </Button>
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </TabPanel>
+            );
+          })}
+        </Box>
+      </Card>
     </Container>
   );
 } 
