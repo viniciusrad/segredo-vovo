@@ -33,7 +33,6 @@ import { HistoricoPedidos } from '@/components/HistoricoPedidos';
 import { HistoricoAquisicoes } from '@/components/HistoricoAquisicoes';
 import { BotoesAcao } from '@/components/BotoesAcao';
 import { formatarPreco } from '@/utils/formatters';
-import { useCarrinho } from '@/contexts/CarrinhoContext';
 import Image from 'next/image';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
@@ -67,7 +66,7 @@ function TabPanel(props: TabPanelProps) {
 export default function Home() {
   const router = useRouter();
   const { usuario } = useAuth();
-  const { adicionarItem } = useCarrinho();
+  // const { adicionarItem } = useCarrinho();
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [pedidosDoDia, setPedidosDoDia] = useState<Pedido[]>([]);
   const [pontosVenda, setPontosVenda] = useState<PontoVenda[]>([]);
@@ -76,7 +75,7 @@ export default function Home() {
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorPedidos, setErrorPedidos] = useState<string | null>(null);
-  const [quantidades, setQuantidades] = useState<{ [key: string]: number }>({});
+  // const [quantidades, setQuantidades] = useState<{ [key: string]: number }>({});
   const [tabAtual, setTabAtual] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -122,19 +121,6 @@ export default function Home() {
     }
   }, [usuario?.perfil]);
 
-  const carregarPontosVenda = async () => {
-    try {
-      const data = await pontoVendaService.listarTodos();
-      console.log('Pontos de venda carregados:', data);
-      setPontosVenda(data);
-      if (data.length > 0) {
-        setPontoVendaSelecionado(data[0].id);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar pontos de venda:', err);
-      setError('Não foi possível carregar os pontos de venda.');
-    }
-  };
 
   const carregarRefeicoes = async () => {
     try {
@@ -149,11 +135,6 @@ export default function Home() {
       console.log('Refeições carregadas:', data);
       setRefeicoes(data);
       
-      const quantidadesIniciais = data.reduce((acc, refeicao) => ({
-        ...acc,
-        [refeicao.id]: 1
-      }), {});
-      setQuantidades(quantidadesIniciais);
     } catch (err) {
       console.error('Erro ao carregar refeições:', err);
       setError('Não foi possível carregar o cardápio. Tente novamente mais tarde.');
@@ -179,43 +160,6 @@ export default function Home() {
     } finally {
       setLoadingPedidos(false);
     }
-  };
-
-  const handleQuantidadeChange = (id: string, quantidade: number) => {
-    setQuantidades(prev => ({
-      ...prev,
-      [id]: quantidade
-    }));
-  };
-
-  const handleAdicionarAoCarrinho = (refeicao: Refeicao) => {
-    const estoquePontoVenda = refeicao.estoque?.find(
-      e => e.id_ponto_venda === pontoVendaSelecionado
-    );
-
-    if (!estoquePontoVenda) {
-      console.error('Estoque não encontrado para o ponto de venda');
-      return;
-    }
-
-    const quantidade = quantidades[refeicao.id] || 1;
-    
-    if (quantidade > estoquePontoVenda.quantidade_disponivel) {
-      setError(`Quantidade solicitada maior que a disponível (${estoquePontoVenda.quantidade_disponivel})`);
-      return;
-    }
-
-    adicionarItem({
-      id: refeicao.id,
-      nome: refeicao.nome,
-      preco: refeicao.preco,
-      quantidade: quantidade
-    });
-
-    setQuantidades(prev => ({
-      ...prev,
-      [refeicao.id]: 1
-    }));
   };
 
   const getQuantidadeDisponivel = (refeicao: Refeicao) => {
@@ -248,96 +192,6 @@ export default function Home() {
     });
   };
 
-  // const renderCardapio = (pontoVendaId: string) => {
-  //   const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVendaId);
-
-  //   return (
-  //     <>
-
-  //     <span>{loading&&"carregando"}</span>
-  //       {refeicoesDoPonto.length === 0 ? (
-  //         <Alert severity="info">
-  //           Não há refeições disponíveis no momento.
-  //         </Alert>
-  //       ) : (
-  //         <Grid container spacing={3}>
-  //           {refeicoesDoPonto.map((refeicao) => (
-  //             <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-  //               <Card
-  //                 elevation={3}
-  //                 onClick={() => router.push(`/refeicoes/${refeicao.id}`)}
-  //                 sx={{
-  //                   height: "100%",
-  //                   display: "flex",
-  //                   flexDirection: "column",
-  //                   transition: "transform 0.2s, box-shadow 0.2s",
-  //                   cursor: "pointer",
-  //                   "&:hover": {
-  //                     transform: "translateY(-4px)",
-  //                     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-  //                   },
-  //                   background:
-  //                     "linear-gradient(to bottom right, #ffffff, #f8f9fa)",
-  //                 }}
-  //               >
-  //                 {refeicao.imagem_url && (
-  //                   <CardMedia
-  //                     component="div"
-  //                     sx={{ position: 'relative', height: 200 }}
-  //                   >
-  //                     <Image
-  //                       src={refeicao.imagem_url}
-  //                       alt={refeicao.nome}
-  //                       fill
-  //                       style={{ objectFit: 'cover' }}
-  //                     />
-  //                   </CardMedia>
-  //                 )}
-  //                 <CardContent>
-  //                   <Typography variant="h6" component="h3" gutterBottom>
-  //                     {refeicao.nome}
-  //                   </Typography>
-  //                   <Typography
-  //                     variant="body2"
-  //                     color="text.secondary"
-  //                     sx={{ mb: 2 }}
-  //                   >
-  //                     {refeicao.descricao}
-  //                   </Typography>
-  //                   <Box
-  //                     sx={{
-  //                       display: "flex",
-  //                       justifyContent: "space-between",
-  //                       alignItems: "center",
-  //                     }}
-  //                   >
-  //                     <Typography variant="h6" color="primary">
-  //                       {formatarPreco(refeicao.preco)}
-  //                     </Typography>
-  //                     <Box
-  //                       sx={{
-  //                         display: "flex",
-  //                         flexDirection: "column",
-  //                         alignItems: "flex-end",
-  //                         gap: 1,
-  //                       }}
-  //                     >
-  //                       <Chip
-  //                         label={`${getQuantidadeDisponivel(refeicao)} disponíveis`}
-  //                         color={getQuantidadeDisponivel(refeicao) > 0 ? "success" : "error"}
-  //                         size="small"
-  //                       />
-  //                     </Box>
-  //                   </Box>
-  //                 </CardContent>
-  //               </Card>
-  //             </Grid>
-  //           ))}
-  //         </Grid>
-  //       )}
-  //     </>
-  //   );
-  // };
 
   if (!usuario) {
     return (
@@ -359,6 +213,7 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
+      <span>{loading&&"carregando"}</span>
       <Box className={styles.gradientBackground}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Typography
