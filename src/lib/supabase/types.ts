@@ -7,6 +7,16 @@ export interface Cliente {
   updated_at?: string;
 }
 
+export interface EstoqueRefeicao {
+  id: string;
+  id_refeicao: string;
+  id_ponto_venda: string;
+  quantidade_disponivel: number;
+  disponivel: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Refeicao {
   id: string;
   nome: string;
@@ -18,6 +28,7 @@ export interface Refeicao {
   ingredientes: string[];
   created_at?: string;
   updated_at?: string;
+  estoque?: EstoqueRefeicao[];
 }
 
 export interface Pedido {
