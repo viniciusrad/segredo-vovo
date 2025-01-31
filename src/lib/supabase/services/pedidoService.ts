@@ -83,23 +83,19 @@ export const pedidoService = {
     return data;
   },
 
-  async criar(pedido: Omit<Pedido, 'id' | 'created_at' | 'updated_at' | 'status'>) {
-    try {
-      const { data, error } = await supabase
-        .from('pedidos')
-        .insert({
-          ...pedido,
-          status: 'solicitado' as StatusPedido
-        })
-        .select()
-        .single();
+  async criar(pedido: Partial<Pedido>) {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .insert(pedido)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return data;
-    } catch (error) {
+    if (error) {
       console.error('Erro ao criar pedido:', error);
       throw error;
     }
+
+    return data;
   },
 
   async atualizarStatus(id: string, status: Pedido['status']): Promise<Pedido> {

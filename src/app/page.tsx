@@ -459,8 +459,8 @@ export default function Home() {
                                 <CardMedia
                                   component="div"
                                   sx={{ position: 'relative', height: 200 }}
-                                >
-                                  <Image
+        >
+          <Image
                                     src={refeicao.imagem_url}
                                     alt={refeicao.nome}
                                     fill
@@ -553,8 +553,8 @@ export default function Home() {
                           <CardMedia
                             component="div"
                             sx={{ position: 'relative', height: 200 }}
-                          >
-                            <Image
+        >
+          <Image
                               src={refeicao.imagem_url}
                               alt={refeicao.nome}
                               fill

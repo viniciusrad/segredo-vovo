@@ -42,6 +42,7 @@ export interface Pedido {
   porcoes: string[];
   created_at?: string;
   updated_at?: string;
+  id_ponto_venda?: string;
   usuarios?: {
     id: string;
     nome: string;
