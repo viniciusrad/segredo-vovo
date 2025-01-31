@@ -1,12 +1,13 @@
 'use client';
 
-import { ThemeProvider, createTheme } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Header } from '@/components/Header';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { CarrinhoProvider } from '@/contexts/CarrinhoContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,14 +25,10 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#2196F3',
-      light: '#21CBF3',
-      dark: '#1976D2',
+      main: '#1976d2',
     },
     secondary: {
-      main: '#FF9800',
-      light: '#FFB74D',
-      dark: '#F57C00',
+      main: '#dc004e',
     },
   },
 });
@@ -45,13 +42,15 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider theme={theme}>
-          <AuthProvider>
-            <LoadingProvider>
-              <LoadingOverlay />
-              <Header />
-              {children}
-            </LoadingProvider>
-          </AuthProvider>
+          <LoadingProvider>
+            <AuthProvider>
+              <CarrinhoProvider>
+                <LoadingOverlay />
+                <Header />
+                {children}
+              </CarrinhoProvider>
+            </AuthProvider>
+          </LoadingProvider>
         </ThemeProvider>
       </body>
     </html>
