@@ -19,9 +19,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { PerfilUsuario } from '@/lib/supabase/types';
-import Link from 'next/link';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import InventoryIcon from '@mui/icons-material/Inventory';
+
 
 const pages = [
   { title: 'Início', path: '/' }
