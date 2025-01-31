@@ -17,13 +17,7 @@ import {
   Button,
   Chip,
   Alert,
-  CircularProgress,
   CardMedia,
-  CardActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Tabs,
   Tab
 } from "@mui/material";
@@ -39,7 +33,6 @@ import { HistoricoPedidos } from '@/components/HistoricoPedidos';
 import { HistoricoAquisicoes } from '@/components/HistoricoAquisicoes';
 import { BotoesAcao } from '@/components/BotoesAcao';
 import { formatarPreco } from '@/utils/formatters';
-import { QuantidadeSelector } from '@/components/QuantidadeSelector';
 import { useCarrinho } from '@/contexts/CarrinhoContext';
 import Image from 'next/image';
 import { useTheme } from '@mui/material/styles';

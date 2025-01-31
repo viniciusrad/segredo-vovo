@@ -143,7 +143,7 @@ export default function RegistrarPedidoPage() {
         porcoes: []
       };
 
-      const novoPedido = await pedidoService.criar(pedido);
+       await pedidoService.criar(pedido);
 
       // Atualizar estoque
       const novaQuantidade = estoquePontoVenda.quantidade_disponivel - quantidade;
