@@ -19,6 +19,9 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { PerfilUsuario } from '@/lib/supabase/types';
+import Link from 'next/link';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 const pages = [
   { title: 'Início', path: '/' }
@@ -83,14 +86,10 @@ export function Header() {
     setAnchorElUser(null);
   };
 
-  const handleNavigate = (path: string) => {
-    router.push(path);
-    handleCloseNavMenu();
-  };
-
   const handleLogout = async () => {
-    handleCloseUserMenu();
     await logout();
+    handleCloseUserMenu();
+    router.push('/login');
   };
 
   const availablePages = usuario ? getAvailablePages(usuario.perfil) : pages;
@@ -118,7 +117,7 @@ export function Header() {
               textDecoration: 'none',
               cursor: 'pointer'
             }}
-            onClick={() => handleNavigate('/')}
+            onClick={() => router.push('/')}
           >
             Quentinhas da Vovó
           </Typography>
@@ -156,7 +155,7 @@ export function Header() {
               {availablePages.map((page) => (
                 <MenuItem 
                   key={page.path} 
-                  onClick={() => handleNavigate(page.path)}
+                  onClick={() => router.push(page.path)}
                   selected={pathname === page.path}
                 >
                   <Typography textAlign="center">{page.title}</Typography>
@@ -179,7 +178,7 @@ export function Header() {
               textDecoration: 'none',
               cursor: 'pointer'
             }}
-            onClick={() => handleNavigate('/')}
+            onClick={() => router.push('/')}
           >
             Quentinhas
           </Typography>
@@ -189,7 +188,7 @@ export function Header() {
             {availablePages.map((page) => (
               <Button
                 key={page.path}
-                onClick={() => handleNavigate(page.path)}
+                onClick={() => router.push(page.path)}
                 sx={{ 
                   my: 2, 
                   color: 'white', 

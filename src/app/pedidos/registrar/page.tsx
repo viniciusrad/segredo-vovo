@@ -5,62 +5,27 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
   Card,
   CardContent,
-  CardMedia,
-  Chip,
   Alert,
   CircularProgress,
-  Tabs,
-  Tab,
-  useTheme,
-  useMediaQuery,
   Button,
-  CardActions
+  Paper,
+  Stack
 } from '@mui/material';
-import { refeicaoService, pontoVendaService, pedidoService } from '@/lib/supabase/services';
-import { Refeicao, PontoVenda, StatusPedido } from '@/lib/supabase/types';
+import { pedidoService, pontoVendaService } from '@/lib/supabase/services';
+import { Pedido, PontoVenda } from '@/lib/supabase/types';
 import { formatarPreco } from '@/utils/formatters';
-import { QuantidadeSelector } from '@/components/QuantidadeSelector';
-import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`ponto-venda-tabpanel-${index}`}
-      aria-labelledby={`ponto-venda-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
+interface PedidosPorPontoVenda {
+  pontoVenda: PontoVenda;
+  pedidos: Pedido[];
 }
 
 export default function RegistrarPedidoPage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
-  const [pontosVenda, setPontosVenda] = useState<PontoVenda[]>([]);
-  const [tabAtual, setTabAtual] = useState(0);
+  const [pedidosPorPonto, setPedidosPorPonto] = useState<PedidosPorPontoVenda[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantidades, setQuantidades] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     carregarDados();
@@ -69,19 +34,18 @@ export default function RegistrarPedidoPage() {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [pontosVendaData, refeicoesData] = await Promise.all([
+      const [pontosVenda, todosPedidos] = await Promise.all([
         pontoVendaService.listarTodos(),
-        refeicaoService.listarTodas()
+        pedidoService.listarTodos()
       ]);
 
-      setPontosVenda(pontosVendaData);
-      setRefeicoes(refeicoesData);
+      const pedidosSolicitados = todosPedidos.filter(p => p.status === 'solicitado');
+      const pedidosAgrupados = pontosVenda.map(pv => ({
+        pontoVenda: pv,
+        pedidos: pedidosSolicitados.filter(p => p.id_ponto_venda === pv.id)
+      })).filter(grupo => grupo.pedidos.length > 0);
 
-      const quantidadesIniciais = refeicoesData.reduce((acc, refeicao) => ({
-        ...acc,
-        [refeicao.id]: 1
-      }), {});
-      setQuantidades(quantidadesIniciais);
+      setPedidosPorPonto(pedidosAgrupados);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError('Não foi possível carregar os dados. Tente novamente mais tarde.');
@@ -90,91 +54,24 @@ export default function RegistrarPedidoPage() {
     }
   };
 
-  const getRefeicoesPontoVenda = (pontoVendaId: string) => {
-    return refeicoes.filter(refeicao => {
-      const estoquePontoVenda = refeicao.estoque?.find(
-        e => e.id_ponto_venda === pontoVendaId
-      );
-      return estoquePontoVenda?.disponivel;
-    });
-  };
-
-  const getQuantidadeDisponivel = (refeicao: Refeicao, pontoVendaId: string) => {
-    const estoquePontoVenda = refeicao.estoque?.find(
-      e => e.id_ponto_venda === pontoVendaId
-    );
-    return estoquePontoVenda?.quantidade_disponivel || 0;
-  };
-
-  const handleQuantidadeChange = (id: string, quantidade: number) => {
-    setQuantidades(prev => ({
-      ...prev,
-      [id]: quantidade
-    }));
-  };
-
-  const handleReservar = async (refeicao: Refeicao, pontoVendaId: string) => {
+  const handleMarcarSeparado = async (pedidoId: string) => {
     try {
-      const estoquePontoVenda = refeicao.estoque?.find(
-        e => e.id_ponto_venda === pontoVendaId
-      );
-
-      if (!estoquePontoVenda) {
-        setError('Estoque não encontrado para o ponto de venda');
-        return;
-      }
-
-      const quantidade = quantidades[refeicao.id] || 1;
-      
-      if (quantidade > estoquePontoVenda.quantidade_disponivel) {
-        setError(`Quantidade solicitada maior que a disponível (${estoquePontoVenda.quantidade_disponivel})`);
-        return;
-      }
-
-      setLoading(true);
-
-      // Criar pedido anônimo
-      const pedido = {
-        refeicao_id: refeicao.id,
-        quantidade: quantidade,
-        valor_total: refeicao.preco * quantidade,
-        status: 'solicitado' as StatusPedido,
-        data_pedido: new Date().toISOString(),
-        porcoes: []
-      };
-
-       await pedidoService.criar(pedido);
-
-      // Atualizar estoque
-      const novaQuantidade = estoquePontoVenda.quantidade_disponivel - quantidade;
-      const { error: erroEstoque } = await supabase
-        .from('estoque_refeicoes')
-        .update({ 
-          quantidade_disponivel: novaQuantidade,
-          disponivel: novaQuantidade > 0 
-        })
-        .eq('id', estoquePontoVenda.id);
-
-      if (erroEstoque) {
-        console.error('Erro ao atualizar estoque:', erroEstoque);
-        throw new Error('Erro ao atualizar estoque');
-      }
-
-      // Resetar quantidade
-      setQuantidades(prev => ({
-        ...prev,
-        [refeicao.id]: 1
-      }));
-
-      // Recarregar dados atualizados
+      await pedidoService.atualizarStatus(pedidoId, 'separado');
       await carregarDados();
-
     } catch (err) {
-      console.error('Erro ao processar pedido:', err);
-      setError('Não foi possível processar o pedido. Tente novamente.');
-    } finally {
-      setLoading(false);
+      console.error('Erro ao atualizar status:', err);
+      setError('Não foi possível atualizar o status do pedido.');
     }
+  };
+
+  const formatarData = (data: string) => {
+    return new Date(data).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
@@ -196,126 +93,111 @@ export default function RegistrarPedidoPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'text.primary' }}>
-        Fazer Pedido
+        Separação de Pedidos
       </Typography>
 
-      <Card sx={{ backgroundColor: 'white', boxShadow: 2 }}>
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
-            <Tabs
-              value={tabAtual}
-              onChange={(_, newValue) => setTabAtual(newValue)}
-              variant={isMobile ? "scrollable" : "fullWidth"}
-              scrollButtons={isMobile ? "auto" : false}
-              aria-label="Pontos de Venda"
-              sx={{
-                '& .MuiTab-root': {
-                  color: 'text.secondary',
-                  '&.Mui-selected': {
-                    color: 'primary.main',
-                    fontWeight: 'bold'
-                  }
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: 'primary.main'
-                }
-              }}
-            >
-              {pontosVenda.map((pv, index) => (
-                <Tab
-                  key={pv.id}
-                  label={pv.nome}
-                  id={`ponto-venda-tab-${index}`}
-                  aria-controls={`ponto-venda-tabpanel-${index}`}
-                />
-              ))}
-            </Tabs>
-          </Box>
-
-          {pontosVenda.map((pontoVenda, index) => {
-            const refeicoesDoPonto = getRefeicoesPontoVenda(pontoVenda.id);
-
-            return (
-              <TabPanel key={pontoVenda.id} value={tabAtual} index={index}>
-                <Typography variant="h5" component="h2" gutterBottom sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-                  Cardápio - {pontoVenda.nome}
-                </Typography>
-                {refeicoesDoPonto.length === 0 ? (
-                  <Alert severity="info">
-                    Não há refeições disponíveis neste ponto de venda.
-                  </Alert>
-                ) : (
-                  <Grid container spacing={3}>
-                    {refeicoesDoPonto.map((refeicao) => (
-                      <Grid item xs={12} sm={6} md={4} key={refeicao.id}>
-                        <Card sx={{ 
-                          height: '100%', 
-                          display: 'flex', 
-                          flexDirection: 'column',
-                          backgroundColor: 'white',
-                          boxShadow: 1
+      {pedidosPorPonto.length === 0 ? (
+        <Alert severity="info">Não há pedidos para separar no momento.</Alert>
+      ) : (
+        pedidosPorPonto.map(({ pontoVenda, pedidos }) => (
+          <Card key={pontoVenda.id} sx={{ mb: 4, backgroundColor: 'white', boxShadow: 2 }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                {pontoVenda.nome}
+              </Typography>
+              
+              <Stack spacing={-1}>
+                {pedidos.map((pedido, index) => (
+                  <Paper 
+                    key={pedido.id} 
+                    elevation={1}
+                    sx={{ 
+                      p: 2,
+                      mt: index === 0 ? 0 : -1,
+                      position: 'relative',
+                      zIndex: pedidos.length - index,
+                      borderRadius: 2,
+                      backgroundColor: index === 0 ? '#f3f8ff' : 'white',
+                      border: '1px solid',
+                      borderColor: index === 0 ? 'primary.main' : 'grey.300',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        transition: 'transform 0.2s ease-in-out'
+                      }
+                    }}
+                  >
+                    {index === 0 ? (
+                      // Primeiro pedido - Detalhado
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box>
+                            <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                              {pedido.refeicoes?.nome}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Porções: {pedido.porcoes.join(', ') || 'Padrão'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Quantidade: {pedido.quantidade}
+                            </Typography>
+                          </Box>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            onClick={() => handleMarcarSeparado(pedido.id)}
+                            sx={{ minWidth: 120 }}
+                          >
+                            Marcar Separado
+                          </Button>
+                        </Box>
+                        <Box sx={{ 
+                          p: 2, 
+                          bgcolor: 'grey.50', 
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'grey.200'
                         }}>
-                          {refeicao.imagem_url && (
-                            <CardMedia
-                              component="div"
-                              sx={{ position: 'relative', height: 200 }}
-                            >
-                              <Image
-                                src={refeicao.imagem_url}
-                                alt={refeicao.nome}
-                                fill
-                                style={{ objectFit: 'cover' }}
-                              />
-                            </CardMedia>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Pedido realizado em: {formatarData(pedido.data_pedido)}
+                          </Typography>
+                          {pedido.usuarios && (
+                            <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                              Cliente: {pedido.usuarios.nome}
+                            </Typography>
                           )}
-                          <CardContent sx={{ flexGrow: 1 }}>
-                            <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', fontWeight: 'medium' }}>
-                              {refeicao.nome}
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }} paragraph>
-                              {refeicao.descricao}
-                            </Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                              <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-                                {formatarPreco(refeicao.preco)}
-                              </Typography>
-                              <Chip
-                                label={`${getQuantidadeDisponivel(refeicao, pontoVenda.id)} disponíveis`}
-                                color={getQuantidadeDisponivel(refeicao, pontoVenda.id) > 0 ? 'success' : 'error'}
-                              />
-                            </Box>
-                            <Box sx={{ mt: 2 }}>
-                              <QuantidadeSelector
-                                quantidade={quantidades[refeicao.id] || 1}
-                                onChange={(novaQuantidade) => handleQuantidadeChange(refeicao.id, novaQuantidade)}
-                                max={getQuantidadeDisponivel(refeicao, pontoVenda.id)}
-                              />
-                            </Box>
-                          </CardContent>
-                          <CardActions sx={{ p: 2 }}>
-                            <Button
-                              fullWidth
-                              variant="contained"
-                              onClick={() => handleReservar(refeicao, pontoVenda.id)}
-                              disabled={getQuantidadeDisponivel(refeicao, pontoVenda.id) === 0}
-                              sx={{ 
-                                fontWeight: 'bold',
-                                py: 1
-                              }}
-                            >
-                              Reservar
-                            </Button>
-                          </CardActions>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              </TabPanel>
-            );
-          })}
-        </Box>
-      </Card>
+                          <Typography variant="subtitle1" sx={{ mt: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                            Valor Total: {formatarPreco(pedido.valor_total)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      // Demais pedidos - Compactos
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                            {pedido.refeicoes?.nome}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {pedido.porcoes.join(', ') || 'Padrão'} • {pedido.quantidade}x
+                          </Typography>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          color="success"
+                          size="small"
+                          onClick={() => handleMarcarSeparado(pedido.id)}
+                        >
+                          Separar
+                        </Button>
+                      </Box>
+                    )}
+                  </Paper>
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        ))
+      )}
     </Container>
   );
 } 

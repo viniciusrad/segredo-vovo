@@ -3,6 +3,31 @@ import { Pedido, Refeicao, StatusPedido } from '../types';
 
 export const pedidoService = {
   async listarTodos(): Promise<Pedido[]> {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select(`
+        *,
+        usuarios:cliente_id (
+          id,
+          nome,
+          email,
+          telefone,
+          id_ponto_venda
+        ),
+        refeicoes:refeicao_id (
+          id,
+          nome,
+          preco,
+          descricao
+        )
+      `)
+      .order('data_pedido', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao listar pedidos:', error);
+      throw error;
+    }
+
     // Primeiro, buscar todos os pontos de venda
     const { data: pontosVenda, error: pontosVendaError } = await supabase
       .from('pontos_venda')
@@ -15,31 +40,8 @@ export const pedidoService = {
       pontosVenda.map(pv => [pv.id, pv])
     );
 
-    // Buscar os pedidos com dados do usuário
-    const { data: pedidos, error: pedidosError } = await supabase
-      .from('pedidos')
-      .select(`
-        *,
-        porcoes,
-        usuarios:cliente_id (
-          id,
-          nome,
-          email,
-          telefone,
-          id_ponto_venda
-        ),
-        refeicoes (
-          id,
-          nome,
-          preco
-        )
-      `)
-      .order('data_pedido', { ascending: false });
-
-    if (pedidosError) throw pedidosError;
-    
     // Processa os dados para incluir o ponto de venda e garantir o formato correto das porções
-    const pedidosProcessados = (pedidos || []).map(pedido => ({
+    const pedidosProcessados = (data || []).map(pedido => ({
       ...pedido,
       usuarios: pedido.usuarios ? {
         ...pedido.usuarios,
